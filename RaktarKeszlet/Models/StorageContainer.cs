@@ -9,5 +9,9 @@
         // Melyik polcon/sorban van?
         public int ShelfId { get; set; }
         public Shelf Shelf { get; set; }
+
+        //  Mik vannak egy dobozban/raklapon? (1:N kapcsolat)
+        public ICollection<Product> Products { get; set; }
+
     }
 }

@@ -17,6 +17,9 @@ namespace RaktarKeszlet.Data
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Shelf> Shelves { get; set; }
         public DbSet<StorageContainer> StorageContainers { get; set; }
+        public DbSet<Product> Products { get; set; }
+
+        public DbSet<TransactionLog> TransactionLogs { get; set; }  
 
     }
 }

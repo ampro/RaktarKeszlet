@@ -10,6 +10,8 @@ namespace RaktarKeszlet.Models
 
         //Kapcsolat a céghez
         public int? CompanyId { get; set; }
-        public Company? Company { get; set; }    
+        public Company? Company { get; set; }
+
+        public ICollection<TransactionLog> TransactionLogs { get; set; }
     }
 }

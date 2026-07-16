@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RaktarKeszlet.Data;
 
@@ -11,9 +12,11 @@ using RaktarKeszlet.Data;
 namespace RaktarKeszlet.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260716171929_AddProductModel")]
+    partial class AddProductModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -378,47 +381,6 @@ namespace RaktarKeszlet.Data.Migrations
                     b.ToTable("StorageContainers");
                 });
 
-            modelBuilder.Entity("RaktarKeszlet.Models.TransactionLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ActionType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("FromStorageContainerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ToStorageContainerId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FromStorageContainerId");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("ToStorageContainerId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("TransactionLogs");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -532,42 +494,6 @@ namespace RaktarKeszlet.Data.Migrations
                     b.Navigation("Shelf");
                 });
 
-            modelBuilder.Entity("RaktarKeszlet.Models.TransactionLog", b =>
-                {
-                    b.HasOne("RaktarKeszlet.Models.StorageContainer", "FromStorageContainer")
-                        .WithMany()
-                        .HasForeignKey("FromStorageContainerId");
-
-                    b.HasOne("RaktarKeszlet.Models.Product", "Product")
-                        .WithMany("TransactionLogs")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RaktarKeszlet.Models.StorageContainer", "ToStorageContainer")
-                        .WithMany()
-                        .HasForeignKey("ToStorageContainerId");
-
-                    b.HasOne("RaktarKeszlet.Models.ApplicationUser", "User")
-                        .WithMany("TransactionLogs")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FromStorageContainer");
-
-                    b.Navigation("Product");
-
-                    b.Navigation("ToStorageContainer");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("RaktarKeszlet.Models.ApplicationUser", b =>
-                {
-                    b.Navigation("TransactionLogs");
-                });
-
             modelBuilder.Entity("RaktarKeszlet.Models.Building", b =>
                 {
                     b.Navigation("Rooms");
@@ -576,11 +502,6 @@ namespace RaktarKeszlet.Data.Migrations
             modelBuilder.Entity("RaktarKeszlet.Models.Company", b =>
                 {
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("RaktarKeszlet.Models.Product", b =>
-                {
-                    b.Navigation("TransactionLogs");
                 });
 
             modelBuilder.Entity("RaktarKeszlet.Models.Room", b =>
