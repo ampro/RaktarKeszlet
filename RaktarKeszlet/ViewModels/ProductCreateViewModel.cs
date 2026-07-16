@@ -13,10 +13,10 @@ namespace RaktarKeszlet.ViewModels
         public int Price { get; set; }
 
       
-        public string Barcode { get; set; }
+        public string? Barcode { get; set; }
 
         //Valójában QR kód, de a rövidítés miatt RCode-nak hívjuk
-        public string RCode { get; set; }
+        public string? RCode { get; set; }
 
         // Opcionális képfeltöltés (IFormFile fogadja a fájlt a böngészőből)
         public IFormFile? Photo { get; set; }

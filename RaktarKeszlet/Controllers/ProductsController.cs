@@ -7,6 +7,9 @@ using RaktarKeszlet.ViewModels;
 using Microsoft.AspNetCore.Hosting; // Ez kell a fájlmentéshez
 using System.IO;
 
+// ... (a Controller elején lévõ konstruktorhoz esetleg hozzá kell adnod az IWebHostEnvironment-et, ha képeket is mentesz)
+
+
 public class ProductsController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -86,7 +89,12 @@ public class ProductsController : Controller
     // GET: PRODUCTS/Create
     public IActionResult Create()
     {
-        return View();
+        var viewModel = new ProductCreateViewModel
+        {
+            Categories = new SelectList(_context.Categories, "Id", "Name"),
+            StorageContainers = new SelectList(_context.StorageContainers, "Id", "Name")
+        };
+        return View(viewModel);
     }
 
     // POST: PRODUCTS/Create
@@ -94,15 +102,50 @@ public class ProductsController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Name,Price,Barcode,RCode,PhotoUrl,StorageContainerId,StorageContainer,CategoryId,Category,TransactionLogs")] Product product)
+    public async Task<IActionResult> Create(ProductCreateViewModel viewModel)
     {
         if (ModelState.IsValid)
         {
+            string uniqueFileName = null;
+
+            // Kép mentése, ha töltöttek fel valamit
+            if (viewModel.Photo != null)
+            {
+                // Ideális esetben a wwwroot/images mappába mentjük
+                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+                Directory.CreateDirectory(uploadsFolder); // Létrehozza a mappát, ha nincs
+                uniqueFileName = Guid.NewGuid().ToString() + "_" + viewModel.Photo.FileName;
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await viewModel.Photo.CopyToAsync(fileStream);
+                }
+            }
+
+            // Új termék összeállítása a ViewModel alapján
+            var product = new Product
+            {
+                Name = viewModel.Name,
+                Price = viewModel.Price,
+                Barcode = viewModel.Barcode,
+                RCode = viewModel.RCode,
+                PhotoUrl = uniqueFileName, // Csak a fájl nevét mentjük az adatbázisba
+                CategoryId = viewModel.CategoryId,
+                StorageContainerId = viewModel.StorageContainerId
+            };
+
             _context.Add(product);
+
+            // Itt be lehetne szúrni a TransactionLog mentését is a logoláshoz!
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-        return View(product);
+
+        // Ha valami hiba volt (pl. üresen hagytak egy kötelezõ mezõt), újratöltjük a legördülõket
+        viewModel.Categories = new SelectList(_context.Categories, "Id", "Name", viewModel.CategoryId);
+        viewModel.StorageContainers = new SelectList(_context.StorageContainers, "Id", "Name", viewModel.StorageContainerId);
+        return View(viewModel);
     }
 
     // GET: PRODUCTS/Edit/5

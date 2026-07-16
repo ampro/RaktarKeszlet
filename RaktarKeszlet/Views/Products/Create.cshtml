@@ -1,0 +1,62 @@
+﻿@model RaktarKeszlet.ViewModels.ProductCreateViewModel
+
+@{
+    ViewData["Title"] = "Új termék felvitele";
+}
+
+<h1>Új termék felvitele</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" enctype="multipart/form-data" class="bg-light p-4 rounded shadow-sm">
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label fw-bold">Megnevezés</label>
+                <input asp-for="Name" class="form-control" placeholder="Pl. Kalapács" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Price" class="form-label fw-bold">Ár (Ft)</label>
+                <input asp-for="Price" class="form-control" type="number" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Barcode" class="form-label fw-bold">Vonalkód</label>
+                <input asp-for="Barcode" class="form-control" />
+                <span asp-validation-for="Barcode" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="RCode" class="form-label fw-bold">R kód</label>
+                <input asp-for="RCode" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="CategoryId" class="form-label fw-bold">Kategória</label>
+                <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
+                    <option value="">-- Válassz kategóriát! --</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="StorageContainerId" class="form-label fw-bold">Hova kerül? (Tárolóeszköz)</label>
+                <select asp-for="StorageContainerId" asp-items="Model.StorageContainers" class="form-select">
+                    <option value="">-- Válassz tárolóeszközt! --</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Photo" class="form-label fw-bold">Fénykép feltöltése (Opcionális)</label>
+                <input asp-for="Photo" type="file" class="form-control" accept="image/*" />
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Mentés</button>
+                <a asp-action="Index" class="btn btn-secondary ms-2">Mégse</a>
+            </div>
+        </form>
+    </div>
+</div>
