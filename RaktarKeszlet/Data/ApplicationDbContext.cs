@@ -21,5 +21,7 @@ namespace RaktarKeszlet.Data
 
         public DbSet<TransactionLog> TransactionLogs { get; set; }  
 
+        public DbSet<Category> Categories { get; set; }
+
     }
 }
