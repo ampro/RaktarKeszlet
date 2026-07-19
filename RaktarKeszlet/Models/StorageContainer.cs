@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
         public string Name { get; set; } // Pl. "123-as azonosítójú raklap"
-        public string Type { get; set; } // Pl. "doboz", "raklap" [1]
+        public string? Type { get; set; } // Pl. "doboz", "raklap" [1]
 
         // Melyik polcon/sorban van?
         public int ShelfId { get; set; }

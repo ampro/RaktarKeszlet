@@ -1,49 +1,38 @@
 @model RaktarKeszlet.Models.Shelf
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Polc szerkesztése";
 }
 
-<h1>Edit</h1>
-
-<h4>Shelf</h4>
+<h1>Polc / Sor szerkesztése</h1>
 <hr />
+
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="col-md-6">
+        <form asp-action="Edit" class="bg-light p-4 rounded shadow-sm">
+            <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
+
+            <!-- Rejtett mezõ az azonosítónak (KÖTELEZÕ!) -->
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Identifier" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="RoomId" class="form-label fw-bold">Melyik helyiségben található?</label>
+                <select asp-for="RoomId" class="form-select" asp-items="ViewBag.RoomId">
+                    <option value="">-- Válassz helyiséget! --</option>
+                </select>
+                <span asp-validation-for="RoomId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Identifier" class="form-label fw-bold">Polc vagy Sor neve</label>
                 <input asp-for="Identifier" class="form-control" />
                 <span asp-validation-for="Identifier" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="RoomId" class="control-label"></label>
-                <input asp-for="RoomId" class="form-control" />
-                <span asp-validation-for="RoomId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Room" class="control-label"></label>
-                <input asp-for="Room" class="form-control" />
-                <span asp-validation-for="Room" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StorageContainers" class="control-label"></label>
-                <input asp-for="StorageContainers" class="form-control" />
-                <span asp-validation-for="StorageContainers" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-success">Módosítások mentése</button>
+                <a asp-action="Index" class="btn btn-secondary ms-2">Mégse</a>
             </div>
         </form>
     </div>
 </div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}

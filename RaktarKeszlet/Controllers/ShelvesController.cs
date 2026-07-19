@@ -1,8 +1,9 @@
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using RaktarKeszlet.Models;
 using RaktarKeszlet.Data;
+using RaktarKeszlet.Models;
 
 public class ShelvesController : Controller
 {
@@ -13,10 +14,13 @@ public class ShelvesController : Controller
         _context = context;
     }
 
-    // GET: SHELFS
-    public async Task<IActionResult> Index()    
+    // GET: Shelves
+    public async Task<IActionResult> Index()
     {
-        return View(await _context.Shelves.ToListAsync());
+        // Az Include parancs mondja meg az adatbázisnak, hogy a polccal együtt hozza el a Room adatait is
+        var shelvesWithRooms = _context.Shelves.Include(s => s.Room);
+
+        return View(await shelvesWithRooms.ToListAsync());
     }
 
     // GET: SHELFS/Details/5
@@ -27,7 +31,7 @@ public class ShelvesController : Controller
             return NotFound();
         }
 
-        var shelf = await _context.Shelves
+        var shelf = await _context.Shelves.Include(s => s.Room)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (shelf == null)
         {
@@ -40,6 +44,7 @@ public class ShelvesController : Controller
     // GET: SHELFS/Create
     public IActionResult Create()
     {
+        ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name");
         return View();
     }
 
@@ -50,6 +55,8 @@ public class ShelvesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Id,Identifier,RoomId,Room,StorageContainers")] Shelf shelf)
     {
+        ModelState.Remove("Room");
+        ModelState.Remove("StorageContainers");
         if (ModelState.IsValid)
         {
             _context.Add(shelf);
@@ -62,6 +69,7 @@ public class ShelvesController : Controller
     // GET: SHELFS/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
+        ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name");
         if (id == null)
         {
             return NotFound();
@@ -82,6 +90,8 @@ public class ShelvesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int? id, [Bind("Id,Identifier,RoomId,Room,StorageContainers")] Shelf shelf)
     {
+        ModelState.Remove("Room");
+        ModelState.Remove("StorageContainers");
         if (id != shelf.Id)
         {
             return NotFound();
@@ -118,7 +128,7 @@ public class ShelvesController : Controller
             return NotFound();
         }
 
-        var shelf = await _context.Shelves
+        var shelf = await _context.Shelves.Include(s => s.Room)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (shelf == null)
         {

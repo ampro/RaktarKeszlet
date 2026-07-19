@@ -1,59 +1,37 @@
 @model IEnumerable<RaktarKeszlet.Models.StorageContainer>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Tárolóeszközök (Dobozok, Raklapok)";
 }
 
-<h1>Index</h1>
-
+<h1>Tárolóeszközök</h1>
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-success">Új tárolóeszköz felvitele</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Type)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ShelfId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Shelf)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Products)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Type)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.ShelfId)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Shelf)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Products)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Melyik Polcon/Soron van?</th>
+                <th>Tárolóeszköz azonosítója</th>
+                <th>Mûveletek</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <!-- IDE FIGYELJ: Ha nálad nem Name, hanem pl. ShelfNumber, akkor írd át! -->
+                    <td>@(item.Shelf != null ? item.Shelf.Identifier : "Nincs megadva")</td>
+                    <td class="fw-bold">@item.Name</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RaktarKeszlet.Models;
 using RaktarKeszlet.Data;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 public class StorageContainersController : Controller
 {
@@ -16,6 +17,7 @@ public class StorageContainersController : Controller
     // GET: STORAGECONTAINERS
     public async Task<IActionResult> Index()    
     {
+        var storageContainersWithShelves = _context.StorageContainers.Include(s => s.Shelf);
         return View(await _context.StorageContainers.ToListAsync());
     }
 
@@ -28,6 +30,7 @@ public class StorageContainersController : Controller
         }
 
         var storagecontainer = await _context.StorageContainers
+            .Include(s => s.Shelf)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (storagecontainer == null)
         {
@@ -40,6 +43,7 @@ public class StorageContainersController : Controller
     // GET: STORAGECONTAINERS/Create
     public IActionResult Create()
     {
+        ViewData["ShelfId"] = new SelectList(_context.Shelves, "Id", "Identifier");
         return View();
     }
 
@@ -50,6 +54,9 @@ public class StorageContainersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Id,Name,Type,ShelfId,Shelf,Products")] StorageContainer storagecontainer)
     {
+        ModelState.Remove("Shelf");
+        ModelState.Remove("Products");
+        ModelState.Remove("Type");
         if (ModelState.IsValid)
         {
             _context.Add(storagecontainer);
@@ -62,6 +69,7 @@ public class StorageContainersController : Controller
     // GET: STORAGECONTAINERS/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
+        ViewData["ShelfId"] = new SelectList(_context.Shelves, "Id", "Identifier");
         if (id == null)
         {
             return NotFound();
@@ -119,6 +127,7 @@ public class StorageContainersController : Controller
         }
 
         var storagecontainer = await _context.StorageContainers
+            .Include(s => s.Shelf)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (storagecontainer == null)
         {

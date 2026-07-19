@@ -1,58 +1,38 @@
 @model RaktarKeszlet.Models.StorageContainer
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Tárolóeszköz törlése";
 }
 
-<h1>Delete</h1>
+<h1 class="text-danger">Törlés jóváhagyása</h1>
+<h3>Biztosan törölni szeretnéd ezt a tárolóeszközt?</h3>
+<hr />
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>RaktarKeszlet.Models.StorageContainer</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Type)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Type)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ShelfId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ShelfId)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Shelf)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Shelf)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Products)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Products)
-        </dd>
-    </dl>
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Tárolóeszköz adatai</h5>
+            </div>
+            <div class="card-body bg-light">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Azonosító (Név)</dt>
+                    <dd class="col-sm-7 fw-bold fs-5">@Model.Name</dd>
+
+                    <dt class="col-sm-5 text-muted mt-3">Melyik Polcon/Soron van?</dt>
+                    <dd class="col-sm-7 mt-3">
+                        <!-- IDE FIGYELJ: Ha nálad nem Name, hanem pl. ShelfNumber, akkor írd át! -->
+                        @(Model.Shelf != null ? Model.Shelf.Identifier : "Nincs polchoz rendelve")
+                    </dd>
+                </dl>
+            </div>
+            <div class="card-footer bg-white border-top-0 pt-3 pb-3">
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger">Igen, véglegesen törlöm</button>
+                    <a asp-action="Index" class="btn btn-secondary ms-2">Mégse, vissza a listához</a>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>

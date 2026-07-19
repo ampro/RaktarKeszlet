@@ -59,14 +59,15 @@ public class RoomsController : Controller
     public async Task<IActionResult> Create([Bind("Id,Name,BuildingId,Building,Shelves")] Room room)
     {
         // EZT A KÉT SORT SZÚRD BE: Kikapcsoljuk az ellenõrzést azokra a kapcsolatokra, amiket nem az ûrlap tölt ki!
-        ModelState.Remove("Shelves");
         ModelState.Remove("Building");
+        ModelState.Remove("Shelves");
         if (ModelState.IsValid)
         {
             _context.Add(room);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name");
         return View(room);
     }
 

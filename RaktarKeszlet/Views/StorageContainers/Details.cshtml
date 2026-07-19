@@ -1,52 +1,41 @@
 @model RaktarKeszlet.Models.StorageContainer
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Tárolóeszköz részletei";
 }
 
-<h1>Details</h1>
+<h1>Tárolóeszköz részletei</h1>
+<hr />
 
-<div>
-    <h4>StorageContainer</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Type)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Type)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ShelfId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ShelfId)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Shelf)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Shelf)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Products)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Products)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Alapadatok</h5>
+            </div>
+            <div class="card-body bg-light">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Azonosító (Név)</dt>
+                    <dd class="col-sm-7 fw-bold fs-5">@Model.Name</dd>
+
+                    <dt class="col-sm-5 text-muted mt-3">Melyik Polcon/Soron van?</dt>
+                    <dd class="col-sm-7 mt-3">
+                        @if (Model.Shelf != null)
+                        {
+                            <!-- IDE FIGYELJ: Ha nálad nem Name, hanem pl. ShelfNumber, akkor írd át! -->
+                            <span class="badge bg-info text-dark fs-6">@Model.Shelf.Identifier</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Nincs polchoz rendelve</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+            <div class="card-footer bg-white border-top-0 pt-3 pb-3">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Szerkesztés</a>
+                <a asp-action="Index" class="btn btn-secondary ms-2">Vissza a listához</a>
+            </div>
+        </div>
+    </div>
 </div>
