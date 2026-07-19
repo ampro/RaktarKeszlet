@@ -1,4 +1,4 @@
-@model IEnumerable<RaktarKeszlet.Models.Building>
+@model IEnumerable<RaktarKeszlet.Models.StorageContainer>
 
 @{
     ViewData["Title"] = "Index";
@@ -16,13 +16,16 @@
                 @Html.DisplayNameFor(model => model.Name)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.CompanyId)
+                @Html.DisplayNameFor(model => model.Type)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Company)
+                @Html.DisplayNameFor(model => model.ShelfId)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Rooms)
+                @Html.DisplayNameFor(model => model.Shelf)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Products)
             </th>
             <th></th>
         </tr>
@@ -34,13 +37,16 @@
                 @Html.DisplayFor(model => item.Name)
             </td>
             <td>
-                @Html.DisplayFor(model => item.CompanyId)
+                @Html.DisplayFor(model => item.Type)
             </td>
             <td>
-                @Html.DisplayFor(model => item.Company)
+                @Html.DisplayFor(model => item.ShelfId)
             </td>
             <td>
-                @Html.DisplayFor(model => item.Rooms)
+                @Html.DisplayFor(model => item.Shelf)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Products)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |

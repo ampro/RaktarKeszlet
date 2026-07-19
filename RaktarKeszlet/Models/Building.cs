@@ -7,7 +7,7 @@
 
         // Melyik céghez tartozik ez az épület?
         public int CompanyId { get; set; }
-        public Company Company { get; set; }
+        public Company? Company { get; set; }
 
         // Egy épületben több helyiség lehet
         public ICollection<Room> Rooms { get; set; }

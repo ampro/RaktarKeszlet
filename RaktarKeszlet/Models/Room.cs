@@ -9,7 +9,7 @@ namespace RaktarKeszlet.Models
 
         // Melyik épületben van?
         public int BuildingId { get; set; }
-        public Building Building { get; set; }
+        public Building? Building { get; set; }
 
         // Egy helyiségben több polc/sor lehet
         public ICollection<Shelf> Shelves { get; set; }

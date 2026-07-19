@@ -1,0 +1,44 @@
+@model RaktarKeszlet.Models.Room
+
+@{
+    ViewData["Title"] = "Helyiség részletei";
+}
+
+<h1>Helyiség részletei</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <!-- Modern, Bootstrap kártya (Card) dizájn -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Alapadatok</h5>
+            </div>
+            <div class="card-body bg-light">
+                <dl class="row mb-0">
+                    <!-- Helyiség neve -->
+                    <dt class="col-sm-4 text-muted">Helyiség neve</dt>
+                    <dd class="col-sm-8 fw-bold fs-5">@Model.Name</dd>
+
+                    <!-- Épület neve (Itt használjuk a Controllerben megírt Include-ot) -->
+                    <dt class="col-sm-4 text-muted mt-3">Épület</dt>
+                    <dd class="col-sm-8 mt-3">
+                        @if (Model.Building != null)
+                        {
+                            <span class="badge bg-info text-dark fs-6">@Model.Building.Name</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Nincs hozzárendelve épülethez</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+            <!-- Gombok a kártya alján -->
+            <div class="card-footer bg-white border-top-0 pt-3 pb-3">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Szerkesztés</a>
+                <a asp-action="Index" class="btn btn-secondary ms-2">Vissza a listához</a>
+            </div>
+        </div>
+    </div>
+</div>

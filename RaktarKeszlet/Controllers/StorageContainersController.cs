@@ -1,26 +1,25 @@
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using RaktarKeszlet.Data;
 using RaktarKeszlet.Models;
+using RaktarKeszlet.Data;
 
-public class BuildingsController : Controller
+public class StorageContainersController : Controller
 {
     private readonly ApplicationDbContext _context;
 
-    public BuildingsController(ApplicationDbContext context)
+    public StorageContainersController(ApplicationDbContext context)
     {
         _context = context;
     }
 
-    // GET: BUILDINGS
+    // GET: STORAGECONTAINERS
     public async Task<IActionResult> Index()    
     {
-        return View(await _context.Buildings.ToListAsync());
+        return View(await _context.StorageContainers.ToListAsync());
     }
 
-    // GET: BUILDINGS/Details/5
+    // GET: STORAGECONTAINERS/Details/5
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null)
@@ -28,45 +27,39 @@ public class BuildingsController : Controller
             return NotFound();
         }
 
-        var building = await _context.Buildings
+        var storagecontainer = await _context.StorageContainers
             .FirstOrDefaultAsync(m => m.Id == id);
-        if (building == null)
+        if (storagecontainer == null)
         {
             return NotFound();
         }
 
-        return View(building);
+        return View(storagecontainer);
     }
 
-    // GET: BUILDINGS/Create
+    // GET: STORAGECONTAINERS/Create
     public IActionResult Create()
     {
-        // EZ A SOR HIÁNYZOTT: Lekérdezi a cégeket és beleteszi a ViewData-ba
-        ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name");
         return View();
     }
 
-    // POST: BUILDINGS/Create
+    // POST: STORAGECONTAINERS/Create
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Name,CompanyId,Company,Rooms")] Building building)
+    public async Task<IActionResult> Create([Bind("Id,Name,Type,ShelfId,Shelf,Products")] StorageContainer storagecontainer)
     {
-        // EZT A KÉT SORT SZÚRD BE: Kikapcsoljuk az ellenõrzést azokra a kapcsolatokra, amiket nem az ûrlap tölt ki!
-        ModelState.Remove("Rooms");
-        ModelState.Remove("Company");
         if (ModelState.IsValid)
         {
-            _context.Add(building);
+            _context.Add(storagecontainer);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
-        return View(building);
+        return View(storagecontainer);
     }
 
-    // GET: BUILDINGS/Edit/5
+    // GET: STORAGECONTAINERS/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null)
@@ -74,22 +67,22 @@ public class BuildingsController : Controller
             return NotFound();
         }
 
-        var building = await _context.Buildings.FindAsync(id);
-        if (building == null)
+        var storagecontainer = await _context.StorageContainers.FindAsync(id);
+        if (storagecontainer == null)
         {
             return NotFound();
         }
-        return View(building);
+        return View(storagecontainer);
     }
 
-    // POST: BUILDINGS/Edit/5
+    // POST: STORAGECONTAINERS/Edit/5
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? id, [Bind("Id,Name,CompanyId,Company,Rooms")] Building building)
+    public async Task<IActionResult> Edit(int? id, [Bind("Id,Name,Type,ShelfId,Shelf,Products")] StorageContainer storagecontainer)
     {
-        if (id != building.Id)
+        if (id != storagecontainer.Id)
         {
             return NotFound();
         }
@@ -98,12 +91,12 @@ public class BuildingsController : Controller
         {
             try
             {
-                _context.Update(building);
+                _context.Update(storagecontainer);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!BuildingExists(building.Id))
+                if (!StorageContainerExists(storagecontainer.Id))
                 {
                     return NotFound();
                 }
@@ -114,10 +107,10 @@ public class BuildingsController : Controller
             }
             return RedirectToAction(nameof(Index));
         }
-        return View(building);
+        return View(storagecontainer);
     }
 
-    // GET: BUILDINGS/Delete/5
+    // GET: STORAGECONTAINERS/Delete/5
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
@@ -125,33 +118,33 @@ public class BuildingsController : Controller
             return NotFound();
         }
 
-        var building = await _context.Buildings
+        var storagecontainer = await _context.StorageContainers
             .FirstOrDefaultAsync(m => m.Id == id);
-        if (building == null)
+        if (storagecontainer == null)
         {
             return NotFound();
         }
 
-        return View(building);
+        return View(storagecontainer);
     }
 
-    // POST: BUILDINGS/Delete/5
+    // POST: STORAGECONTAINERS/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
-        var building = await _context.Buildings.FindAsync(id);
-        if (building != null)
+        var storagecontainer = await _context.StorageContainers.FindAsync(id);
+        if (storagecontainer != null)
         {
-            _context.Buildings.Remove(building);
+            _context.StorageContainers.Remove(storagecontainer);
         }
 
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
 
-    private bool BuildingExists(int? id)
+    private bool StorageContainerExists(int? id)
     {
-        return _context.Buildings.Any(e => e.Id == id);
+        return _context.StorageContainers.Any(e => e.Id == id);
     }
 }

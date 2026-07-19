@@ -1,0 +1,35 @@
+@model RaktarKeszlet.Models.Room
+
+@{
+    ViewData["Title"] = "Új helyiség felvitele";
+}
+
+<h1>Új helyiség felvitele</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" class="bg-light p-4 rounded shadow-sm">
+            <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="BuildingId" class="form-label fw-bold">Melyik épületben van?</label>
+                <!-- A kódgenerátor alapból a ViewBag-be teszi a legördülõ lista adatait -->
+                <select asp-for="BuildingId" class="form-select" asp-items="ViewBag.BuildingId">
+                    <option value="">-- Válassz épületet! --</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label fw-bold">Helyiség neve</label>
+                <input asp-for="Name" class="form-control" placeholder="Pl. Hûtõkamra" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Mentés</button>
+                <a asp-action="Index" class="btn btn-secondary ms-2">Vissza a listához</a>
+            </div>
+        </form>
+    </div>
+</div>
