@@ -20,5 +20,7 @@ namespace RaktarKeszlet.Models
         // NAVIGÁCIÓS TULAJDONSÁG LEFELÉ:
         // A céghez tartozó épületek (ezt már valószínűleg beállítottad korábban)
         public ICollection<Building> Buildings { get; set; }
+
+        public ICollection<StorageContainer> StorageContainers { get; set; }
     }
 }

@@ -1,36 +1,62 @@
 @model IEnumerable<RaktarKeszlet.Models.StorageContainer>
 
 @{
-    ViewData["Title"] = "Tárolóeszközök (Dobozok, Raklapok)";
+    ViewData["Title"] = "Tárolóeszközök";
 }
 
 <h1>Tárolóeszközök</h1>
+<p class="text-muted">Itt kezelheted a polcokon lévõ dobozokat, raklapokat és rekeszeket.</p>
+
 <p>
-    <a asp-action="Create" class="btn btn-success">Új tárolóeszköz felvitele</a>
+    <a asp-action="Create" class="btn btn-success shadow-sm">
+        <i class="bi bi-plus-circle"></i> Új tárolóeszköz felvitele
+    </a>
 </p>
 
-<div class="table-responsive">
-    <table class="table table-striped table-hover align-middle">
+<div class="table-responsive shadow-sm rounded">
+    <table class="table table-striped table-hover align-middle mb-0">
         <thead class="table-dark">
             <tr>
+                <th>Eszköz neve / Azonosítója</th>
+                <th>Típus</th>
                 <th>Melyik Polcon/Soron van?</th>
-                <th>Tárolóeszköz azonosítója</th>
-                <th>Mûveletek</th>
+                <th class="text-end">Mûveletek</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @if (!Model.Any())
             {
                 <tr>
-                    <!-- IDE FIGYELJ: Ha nálad nem Name, hanem pl. ShelfNumber, akkor írd át! -->
-                    <td>@(item.Shelf != null ? item.Shelf.Identifier : "Nincs megadva")</td>
-                    <td class="fw-bold">@item.Name</td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>
-                    </td>
+                    <td colspan="4" class="text-center text-muted py-4">Még nem rögzítettél egyetlen tárolóeszközt sem.</td>
                 </tr>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-bold fs-5">@item.Name</td>
+                        <td>
+                            <span class="badge bg-secondary fs-6">@item.Type</span>
+                        </td>
+                        <td>
+                            @if (item.Shelf != null)
+                            {
+                                <!-- Itt az Identifier mezõre hivatkozunk, amit a polcoknál használsz! -->
+                                <span class="badge bg-success fs-6">@item.Shelf.Identifier</span>
+                            }
+                            else
+                            {
+                                <span class="text-danger">Nincs polchoz rendelve</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>

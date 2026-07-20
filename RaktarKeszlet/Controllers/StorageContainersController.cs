@@ -4,7 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using RaktarKeszlet.Models;
 using RaktarKeszlet.Data;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
+
+[Authorize]
 public class StorageContainersController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -17,8 +21,16 @@ public class StorageContainersController : Controller
     // GET: STORAGECONTAINERS
     public async Task<IActionResult> Index()    
     {
-        var storageContainersWithShelves = _context.StorageContainers.Include(s => s.Shelf);
-        return View(await _context.StorageContainers.ToListAsync());
+        // Lekérjük a bejelentkezett felhasználó azonosítóját
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Lekérdezzük a tárolókat, és hozzácsatoljuk (.Include) a Polc és Cég adatokat is!
+        var myContainers = _context.StorageContainers
+            .Include(s => s.Company) // Betöltjük a cég adatait
+            .Include(s => s.Shelf)   // EZ OLDJA MEG A HIBÁT: Betöltjük a polc adatait is!
+            .Where(s => s.Company.UserId == currentUserId);
+
+        return View(await myContainers.ToListAsync());
     }
 
     // GET: STORAGECONTAINERS/Details/5
@@ -43,27 +55,49 @@ public class StorageContainersController : Controller
     // GET: STORAGECONTAINERS/Create
     public IActionResult Create()
     {
-        ViewData["ShelfId"] = new SelectList(_context.Shelves, "Id", "Identifier");
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // 1. Csúcsszint (Kötelezõ)
+        var myCompanies = _context.Companies.Where(c => c.UserId == currentUserId).ToList();
+        ViewData["CompanyId"] = new SelectList(myCompanies, "Id", "Name");
+
+        // 2. Alárendelt szintek (Opcionálisak, a JavaScript fogja õket szûrni)
+        ViewBag.Buildings = _context.Buildings.Where(b => b.Company.UserId == currentUserId).ToList();
+        ViewBag.Rooms = _context.Rooms.Where(r => r.Building.Company.UserId == currentUserId).ToList();
+        ViewBag.Shelves = _context.Shelves.Where(s => s.Room.Building.Company.UserId == currentUserId).ToList();
+
         return View();
     }
 
-    // POST: STORAGECONTAINERS/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    // POST: StorageContainers/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Name,Type,ShelfId,Shelf,Products")] StorageContainer storagecontainer)
+    public async Task<IActionResult> Create([Bind("Id,Name,Type,CompanyId,ShelfId")] StorageContainer storageContainer)
     {
+        ModelState.Remove("Company");
         ModelState.Remove("Shelf");
         ModelState.Remove("Products");
-        ModelState.Remove("Type");
+
         if (ModelState.IsValid)
         {
-            _context.Add(storagecontainer);
+            _context.Add(storageContainer);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-        return View(storagecontainer);
+
+        // Hiba esetén újratöltjük az alap listát
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var myCompanies = _context.Companies.Where(c => c.UserId == currentUserId).ToList();
+        ViewData["CompanyId"] = new SelectList(myCompanies, "Id", "Name", storageContainer.CompanyId);
+
+
+        // 2. Alárendelt szintek (Épület, Szoba, Polc) újratöltése
+        ViewBag.Buildings = _context.Buildings.Where(b => b.Company.UserId == currentUserId).ToList();
+        ViewBag.Rooms = _context.Rooms.Where(r => r.Building.Company.UserId == currentUserId).ToList();
+        ViewBag.Shelves = _context.Shelves.Where(s => s.Room.Building.Company.UserId == currentUserId).ToList();
+        // -------------------
+
+        return View(storageContainer);
     }
 
     // GET: STORAGECONTAINERS/Edit/5

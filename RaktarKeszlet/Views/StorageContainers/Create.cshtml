@@ -1,37 +1,115 @@
 @model RaktarKeszlet.Models.StorageContainer
+@using RaktarKeszlet.Models
 
 @{
-    ViewData["Title"] = "Új tárolóeszköz felvitele";
+    ViewData["Title"] = "Új tárolóeszköz rögzítése";
 }
 
-<h1>Új tárolóeszköz felvitele</h1>
+<h1>Új tárolóeszköz rögzítése</h1>
 <hr />
 
 <div class="row">
-    <div class="col-md-6">
-        <form asp-action="Create" class="bg-light p-4 rounded shadow-sm">
-            <!-- Validációs hibajelzõ -->
+    <div class="col-md-8">
+        <form asp-action="Create" class="bg-light p-4 rounded shadow-sm border">
             <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
 
-            <div class="mb-3">
-                <label asp-for="ShelfId" class="form-label fw-bold">Melyik Polcon/Soron található?</label>
-                <!-- A legördülõ lista, ami a Controllerbõl kapja az adatot -->
-                <select asp-for="ShelfId" class="form-select" asp-items="ViewBag.ShelfId">
-                    <option value="">-- Válassz polcot vagy sort! --</option>
-                </select>
-                <span asp-validation-for="ShelfId" class="text-danger"></span>
+            <h5 class="mb-3 text-primary"><i class="bi bi-box-seam"></i> 1. Tároló alapadatai</h5>
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Name" class="form-label fw-bold">Eszköz azonosítója</label>
+                    <input asp-for="Name" class="form-control" placeholder="Pl. 1-es doboz, Raklap-A" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Type" class="form-label fw-bold">Típusa</label>
+                    <input asp-for="Type" class="form-control" value="kartondoboz" />
+                </div>
             </div>
 
+            <h5 class="mb-3 text-primary"><i class="bi bi-geo-alt"></i> 2. Tárolás helye (Hierarchia)</h5>
+            <div class="alert alert-info py-2">
+                <small>Alapértelmezésként az eszköz a hierarchia csúcsán (Cég) kerül rögzítésre. A pontosabb hely megadása opcionális!</small>
+            </div>
+
+            <!-- CÉG: KÖTELEZÕ -->
             <div class="mb-3">
-                <label asp-for="Name" class="form-label fw-bold">Tárolóeszköz azonosítója (pl. D-12 doboz, EUR-1 raklap)</label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+                <label asp-for="CompanyId" class="form-label fw-bold">Cég (Hierarchia csúcsa) *</label>
+                <select asp-for="CompanyId" class="form-select border-primary" asp-items="ViewBag.CompanyId" id="selCompany">
+                    <option value="">-- Válassz céget! --</option>
+                </select>
+            </div>
+
+            <!-- ÉPÜLET: OPCIONÁLIS (Kizárólag UI szûrésre szolgál, nem mentõdik a modellbe közvetlenül) -->
+            <div class="mb-3">
+                <label class="form-label text-muted">Épület (Opcionális)</label>
+                <select id="selBuilding" class="form-select">
+                    <option value="">-- Nem adom meg / Válassz épületet! --</option>
+                    @foreach (var b in (List<Building>)ViewBag.Buildings)
+                    {
+                        <option value="@b.Id" data-parent="@b.CompanyId">@b.Name</option>
+                    }
+                </select>
+            </div>
+
+            <!-- SZOBA: OPCIONÁLIS -->
+            <div class="mb-3">
+                <label class="form-label text-muted">Helyiség / Szoba (Opcionális)</label>
+                <select id="selRoom" class="form-select">
+                    <option value="">-- Nem adom meg / Válassz helyiséget! --</option>
+                    @foreach (var r in (List<Room>)ViewBag.Rooms)
+                    {
+                        <option value="@r.Id" data-parent="@r.BuildingId">@r.Name</option>
+                    }
+                </select>
+            </div>
+
+            <!-- POLC: OPCIONÁLIS (Ez már mentõdik a modellbe a ShelfId-be) -->
+            <div class="mb-4">
+                <label asp-for="ShelfId" class="form-label fw-bold text-muted">Polc vagy Sor (Opcionális)</label>
+                <select asp-for="ShelfId" id="selShelf" class="form-select">
+                    <option value="">-- Nem adom meg / Válassz polcot! --</option>
+                    @foreach (var s in (List<Shelf>)ViewBag.Shelves)
+                    {
+                        <option value="@s.Id" data-parent="@s.RoomId">@s.Identifier</option>
+                    }
+                </select>
             </div>
 
             <div class="mt-4">
-                <button type="submit" class="btn btn-primary">Mentés</button>
-                <a asp-action="Index" class="btn btn-secondary ms-2">Vissza a listához</a>
+                <button type="submit" class="btn btn-primary btn-lg">Mentés</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg ms-2">Vissza a listához</a>
             </div>
         </form>
     </div>
 </div>
+
+<!-- Láncolt legördülõ listák szûrõ logikája -->
+@section Scripts {
+    <script>
+        function filterSelect(sourceId, targetId) {
+            var sourceVal = document.getElementById(sourceId).value;
+            var targetSelect = document.getElementById(targetId);
+
+            targetSelect.value = ""; // Visszaállítjuk az alapértelmezett "Nem adom meg" értékre
+
+            Array.from(targetSelect.options).forEach(function(opt) {
+                if (opt.value === "") {
+                    opt.style.display = ""; // Az üres opció mindig látszik
+                } else if (opt.getAttribute("data-parent") === sourceVal && sourceVal !== "") {
+                    opt.style.display = ""; // Megmutatjuk ami a szülõhöz tartozik
+                } else {
+                    opt.style.display = "none"; // Elrejtjük a többit
+                }
+            });
+            // Továbbdobjuk az eseményt a következõ szintre
+            targetSelect.dispatchEvent(new Event('change'));
+        }
+
+        // Eseménykezelõk a láncolt szûréshez
+        document.getElementById('selCompany').addEventListener('change', function() { filterSelect('selCompany', 'selBuilding'); });
+        document.getElementById('selBuilding').addEventListener('change', function() { filterSelect('selBuilding', 'selRoom'); });
+        document.getElementById('selRoom').addEventListener('change', function() { filterSelect('selRoom', 'selShelf'); });
+
+        // Oldal betöltésekor lefuttatjuk, hogy a kezdeti állapot is helyes legyen
+        document.getElementById('selCompany').dispatchEvent(new Event('change'));
+    </script>
+}
