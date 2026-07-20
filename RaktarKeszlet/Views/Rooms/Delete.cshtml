@@ -1,50 +1,38 @@
 @model RaktarKeszlet.Models.Room
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Helyiség törlése";
 }
 
-<h1>Delete</h1>
+<h1 class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Törlés jóváhagyása</h1>
+<h3>Biztosan törölni szeretnéd ezt a helyiséget?</h3>
+<p class="text-muted">A mûvelet végleges és nem vonható vissza!</p>
+<hr />
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>RaktarKeszlet.Models.Room</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.BuildingId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.BuildingId)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Building)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Building)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Shelves)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Shelves)
-        </dd>
-    </dl>
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Törlendõ helyiség adatai</h5>
+            </div>
+            <div class="card-body bg-light">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Helyiség neve</dt>
+                    <dd class="col-sm-7 fw-bold fs-4">@Model.Name</dd>
+
+                    <dt class="col-sm-5 text-muted mt-3">Melyik épületben található?</dt>
+                    <dd class="col-sm-7 mt-3">
+                        @(Model.Building != null ? Model.Building.Name : "Nincs épülethez rendelve")
+                    </dd>
+                </dl>
+            </div>
+            <div class="card-footer bg-white border-top-0 pt-3 pb-3">
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger">Igen, véglegesen törlöm</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary ms-2">Mégse, vissza</a>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>

@@ -131,6 +131,7 @@ public class RoomsController : Controller
         }
 
         var room = await _context.Rooms
+            .Include(r => r.Building)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (room == null)
         {

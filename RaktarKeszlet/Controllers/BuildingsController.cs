@@ -4,7 +4,10 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RaktarKeszlet.Data;
 using RaktarKeszlet.Models;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
+[Authorize]
 public class BuildingsController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -17,7 +20,9 @@ public class BuildingsController : Controller
     // GET: BUILDINGS
     public async Task<IActionResult> Index()    
     {
-        return View(await _context.Buildings.ToListAsync());
+        // Az Include tölti be a kapcsolódó cég adatait!
+        var applicationDbContext = _context.Buildings.Include(b => b.Company);
+        return View(await applicationDbContext.ToListAsync());
     }
 
     // GET: BUILDINGS/Details/5
@@ -41,8 +46,13 @@ public class BuildingsController : Controller
     // GET: BUILDINGS/Create
     public IActionResult Create()
     {
-        // EZ A SOR HIÁNYZOTT: Lekérdezi a cégeket és beleteszi a ViewData-ba
-        ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name");
+        // Bejelentkezett felhasználó azonosítója
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Csak a SAJÁT cégeit adjuk át a legördülõ listának!
+        var myCompanies = _context.Companies.Where(c => c.UserId == currentUserId);
+        ViewData["CompanyId"] = new SelectList(myCompanies, "Id", "Name");
+
         return View();
     }
 
@@ -51,11 +61,11 @@ public class BuildingsController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Name,CompanyId,Company,Rooms")] Building building)
+    public async Task<IActionResult> Create([Bind("Id,Name,CompanyId")] Building building)
     {
-        // EZT A KÉT SORT SZÚRD BE: Kikapcsoljuk az ellenõrzést azokra a kapcsolatokra, amiket nem az ûrlap tölt ki!
-        ModelState.Remove("Rooms");
         ModelState.Remove("Company");
+        ModelState.Remove("Rooms"); // Vedd ki a többi lefelé mutató kapcsolatot is, ha van!
+
         if (ModelState.IsValid)
         {
             _context.Add(building);
@@ -63,9 +73,13 @@ public class BuildingsController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        // Ha hiba van és visszadob az ûrlapra, újra be kell tölteni a saját cégeket:
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var myCompanies = _context.Companies.Where(c => c.UserId == currentUserId);
+        ViewData["CompanyId"] = new SelectList(myCompanies, "Id", "Name", building.CompanyId);
+
         return View(building);
     }
-
     // GET: BUILDINGS/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {

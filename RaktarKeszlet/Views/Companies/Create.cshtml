@@ -1,0 +1,27 @@
+@model RaktarKeszlet.Models.Company
+
+@{
+    ViewData["Title"] = "Új cég felvitele";
+}
+
+<h1>Új cég rögzítése</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" class="bg-light p-4 rounded shadow-sm border">
+            <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label fw-bold">Cég vagy Tulajdonos neve</label>
+                <input asp-for="Name" class="form-control form-control-lg" placeholder="Pl. Saját Raktár Kft." />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">Mentés</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg ms-2">Mégse</a>
+            </div>
+        </form>
+    </div>
+</div>

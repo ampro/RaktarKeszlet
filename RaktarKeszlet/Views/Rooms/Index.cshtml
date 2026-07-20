@@ -5,32 +5,53 @@
 }
 
 <h1>Raktárhelyiségek</h1>
+<p class="text-muted">Itt kezelheted a raktárépületeken belüli fizikai helyiségeket (pl. hûtõkamra, földszinti raktár).</p>
+
 <p>
-    <a asp-action="Create" class="btn btn-success">Új helyiség felvitele</a>
+    <a asp-action="Create" class="btn btn-success shadow-sm">
+        <i class="bi bi-plus-circle"></i> Új helyiség felvitele
+    </a>
 </p>
 
-<div class="table-responsive">
-    <table class="table table-striped table-hover align-middle">
+<div class="table-responsive shadow-sm rounded">
+    <table class="table table-striped table-hover align-middle mb-0">
         <thead class="table-dark">
             <tr>
-                <th>Épület</th>
                 <th>Helyiség neve</th>
-                <th>Mûveletek</th>
+                <th>Melyik Épületben található?</th>
+                <th class="text-end">Mûveletek</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @if (!Model.Any())
             {
                 <tr>
-                    <td>@(item.Building != null ? item.Building.Name : "-")</td>
-                    <td class="fw-bold">@item.Name</td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
-                        <!-- ÚJ GOMB: Részletek (Details) -->
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>
-                    </td>
+                    <td colspan="3" class="text-center text-muted py-4">Még nem rögzítettél egyetlen helyiséget sem.</td>
                 </tr>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-bold fs-5">@item.Name</td>
+                        <td>
+                            @if (item.Building != null)
+                            {
+                                <span class="badge bg-primary fs-6">@item.Building.Name</span>
+                            }
+                            else
+                            {
+                                <span class="text-danger">Nincs épülethez rendelve</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>

@@ -4,31 +4,31 @@
     ViewData["Title"] = "Új polc felvitele";
 }
 
-<h1>Új polc felvitele</h1>
+<h1>Új polc vagy sor rögzítése</h1>
 <hr />
 
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="Create" class="bg-light p-4 rounded shadow-sm">
+        <form asp-action="Create" class="bg-light p-4 rounded shadow-sm border">
             <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
 
             <div class="mb-3">
                 <label asp-for="RoomId" class="form-label fw-bold">Melyik helyiségben található?</label>
-                <select asp-for="RoomId" class="form-select" asp-items="ViewBag.RoomId">
+                <select asp-for="RoomId" class="form-select form-select-lg" asp-items="ViewBag.RoomId">
                     <option value="">-- Válassz helyiséget! --</option>
                 </select>
                 <span asp-validation-for="RoomId" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="Identifier" class="form-label fw-bold">Polc vagy Sor neve (pl. A-sor, 12. polc)</label>
-                <input asp-for="Identifier" class="form-control" />
+                <label asp-for="Identifier" class="form-label fw-bold">Polc vagy Sor azonosítója</label>
+                <input asp-for="Identifier" class="form-control form-control-lg" placeholder="Pl. A-sor, 1. polc, Bal szektor" />
                 <span asp-validation-for="Identifier" class="text-danger"></span>
             </div>
 
             <div class="mt-4">
-                <button type="submit" class="btn btn-primary">Mentés</button>
-                <a asp-action="Index" class="btn btn-secondary ms-2">Vissza a listához</a>
+                <button type="submit" class="btn btn-primary btn-lg">Mentés</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg ms-2">Vissza a listához</a>
             </div>
         </form>
     </div>

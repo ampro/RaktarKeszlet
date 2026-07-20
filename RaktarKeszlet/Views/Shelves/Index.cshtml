@@ -5,31 +5,53 @@
 }
 
 <h1>Polcok és Sorok</h1>
+<p class="text-muted">Itt kezelheted a raktárhelyiségeken belüli fizikai polcokat, sorokat vagy szektorokat.</p>
+
 <p>
-    <a asp-action="Create" class="btn btn-success">Új polc felvitele</a>
+    <a asp-action="Create" class="btn btn-success shadow-sm">
+        <i class="bi bi-plus-circle"></i> Új polc felvitele
+    </a>
 </p>
 
-<div class="table-responsive">
-    <table class="table table-striped table-hover align-middle">
+<div class="table-responsive shadow-sm rounded">
+    <table class="table table-striped table-hover align-middle mb-0">
         <thead class="table-dark">
             <tr>
-                <th>Helyiség</th>
                 <th>Polc/Sor azonosítója</th>
-                <th>Mûveletek</th>
+                <th>Melyik Helyiségben van?</th>
+                <th class="text-end">Mûveletek</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @if (!Model.Any())
             {
                 <tr>
-                    <td>@(item.Room != null ? item.Room.Name : "Nincs megadva")</td>
-                    <td class="fw-bold">@item.Identifier</td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>
-                    </td>
+                    <td colspan="3" class="text-center text-muted py-4">Még nem rögzítettél egyetlen polcot sem.</td>
                 </tr>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-bold fs-5">@item.Identifier</td>
+                        <td>
+                            @if (item.Room != null)
+                            {
+                                <span class="badge bg-success fs-6">@item.Room.Name</span>
+                            }
+                            else
+                            {
+                                <span class="text-danger">Nincs helyiséghez rendelve</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>

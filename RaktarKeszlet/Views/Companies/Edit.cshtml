@@ -1,10 +1,10 @@
-@model RaktarKeszlet.Models.Room
+@model RaktarKeszlet.Models.Company
 
 @{
-    ViewData["Title"] = "Helyiség szerkesztése";
+    ViewData["Title"] = "Cég szerkesztése";
 }
 
-<h1>Helyiség adatainak módosítása</h1>
+<h1>Cég adatainak módosítása</h1>
 <hr />
 
 <div class="row">
@@ -12,17 +12,13 @@
         <form asp-action="Edit" class="bg-light p-4 rounded shadow-sm border">
             <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
 
-            <!-- Rejtett mezõ a helyiség azonosítójának -->
+            <!-- Rejtett mezõ a cég azonosítójának -->
             <input type="hidden" asp-for="Id" />
+            <!-- Rejtett mezõ a tulajdonos azonosítójának, hogy ne vesszen el a szerkesztéskor -->
+            <input type="hidden" asp-for="UserId" />
 
             <div class="mb-3">
-                <label asp-for="BuildingId" class="form-label fw-bold">Melyik épületben található?</label>
-                <select asp-for="BuildingId" class="form-select form-select-lg" asp-items="ViewBag.BuildingId"></select>
-                <span asp-validation-for="BuildingId" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Name" class="form-label fw-bold">Helyiség neve</label>
+                <label asp-for="Name" class="form-label fw-bold">Cég vagy Tulajdonos neve</label>
                 <input asp-for="Name" class="form-control form-control-lg" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
