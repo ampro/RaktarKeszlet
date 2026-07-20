@@ -1,0 +1,58 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model RaktarKeszlet.Models.Product
+
+@{
+    ViewData["Title"] = "Termék törlése";
+}
+
+<h1 class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Törlés jóváhagyása</h1>
+<h3>Biztosan törölni szeretnéd ezt a terméket a raktárból?</h3>
+<p class="text-muted">A művelet végleges és nem vonható vissza!</p>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Törlendő termék adatai</h5>
+            </div>
+            <div class="card-body bg-light row">
+                <div class="col-4">
+                    @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+                    {
+                        <img src="@Model.PhotoUrl" alt="@Model.Name" class="img-fluid rounded" style="object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded" style="height: 100px;">
+                            <i class="bi bi-image fs-1"></i>
+                        </div>
+                    }
+                </div>
+                <div class="col-8">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-muted">Megnevezés</dt>
+                        <dd class="col-sm-7 fw-bold fs-5">@Model.Name</dd>
+
+                        <dt class="col-sm-5 text-muted">Ár</dt>
+                        <dd class="col-sm-7 fw-bold text-success">@Model.Price.ToString("N0") Ft</dd>
+
+                        <dt class="col-sm-5 text-muted mt-2">Cég / Tulaj.</dt>
+                        <dd class="col-sm-7 mt-2">@(Model.Company?.Name ?? "-")</dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-top-0 pt-3 pb-3">
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Igen, véglegesen törlöm</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary ms-2">Mégse, vissza</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

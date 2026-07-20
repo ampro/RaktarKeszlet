@@ -1,40 +1,35 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
-using RaktarKeszlet.Models;
 
 namespace RaktarKeszlet.ViewModels
 {
-    public class ProductCreateViewModel
+    public class ProductEditViewModel
     {
+        public int Id { get; set; }
+
         [Required(ErrorMessage = "A név megadása kötelező!")]
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Az ár megadása kötelező!")]
         public int Price { get; set; }
 
-      
         public string? Barcode { get; set; }
-
-        //Valójában QR kód, de a rövidítés miatt RCode-nak hívjuk
         public string? RCode { get; set; }
 
-        // Opcionális képfeltöltés (IFormFile fogadja a fájlt a böngészőből)
+        // Opcionális képfeltöltés és a jelenlegi kép útvonalának tárolása
         public IFormFile? Photo { get; set; }
+        public string? ExistingPhotoUrl { get; set; }
 
-        // Kategória kiválasztása
+        // Kategória
         public int? CategoryId { get; set; }
         public SelectList? Categories { get; set; }
 
-        // Tárolóeszköz (hova rakjuk a raktárban)
-        public int? StorageContainerId { get; set; }
-        public SelectList? StorageContainers { get; set; }
-
-
-        // Hierarchia azonosítók az űrlaphoz
+        // Hierarchia (Cég kötelező, a többi opcionális)
         public int CompanyId { get; set; }
         public int? BuildingId { get; set; }
         public int? RoomId { get; set; }
         public int? ShelfId { get; set; }
+        public int? StorageContainerId { get; set; }
     }
 }

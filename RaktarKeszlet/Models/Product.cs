@@ -13,8 +13,22 @@
         // Opcionálisan fénykép (pl. a kép elérési útvonala a szerveren)
         public string? PhotoUrl { get; set; }
 
-        // Kapcsolat a fizikai raktárral: Melyik tárolóeszközben (doboz/raklap) van?
-        // (A kérdőjel miatt ez is lehet üres, ha a termék épp nincs betárolva sehová)
+        // TÁROLÁSI HIERARCHIA KAPCSOLATOK
+
+        // KÖTELEZŐ: A hierarchia csúcsa (Cég / Tulajdonos)
+        public int CompanyId { get; set; }
+        public Company Company { get; set; }
+
+        // OPCIONÁLIS: A köztes szintek és a legalsó szint
+        public int? BuildingId { get; set; }
+        public Building? Building { get; set; }
+
+        public int? RoomId { get; set; }
+        public Room? Room { get; set; }
+
+        public int? ShelfId { get; set; }
+        public Shelf? Shelf { get; set; }
+
         public int? StorageContainerId { get; set; }
         public StorageContainer? StorageContainer { get; set; }
 

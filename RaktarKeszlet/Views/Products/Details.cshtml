@@ -1,0 +1,85 @@
+﻿@model RaktarKeszlet.Models.Product
+
+@{
+    ViewData["Title"] = "Termék részletei";
+}
+
+<h1>Termék részletei</h1>
+<p class="text-muted">Minden információ és tárolási adat a kiválasztott termékről.</p>
+<hr />
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-tag-fill"></i> @Model.Name</h5>
+                <span class="badge bg-success fs-6">@Model.Price.ToString("N0") Ft</span>
+            </div>
+
+            <div class="card-body bg-light row">
+                <!-- BAL OSZLOP: Kép és Alapadatok -->
+                <div class="col-md-6 border-end">
+                    <div class="text-center mb-3">
+                        @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+                        {
+                            <img src="@Model.PhotoUrl" alt="@Model.Name" class="img-fluid rounded shadow-sm" style="max-height: 250px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded shadow-sm mx-auto" style="width: 200px; height: 200px;">
+                                <i class="bi bi-image text-white-50" style="font-size: 5rem;"></i>
+                            </div>
+                            <p class="text-muted mt-2 small">Nincs fotó feltöltve</p>
+                        }
+                    </div>
+
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-muted">Kategória</dt>
+                        <dd class="col-sm-7 fw-bold">@(Model.Category?.Name ?? "Nincs besorolva")</dd>
+
+                        <dt class="col-sm-5 text-muted">Vonalkód</dt>
+                        <dd class="col-sm-7">@(Model.Barcode ?? "-")</dd>
+
+                        <dt class="col-sm-5 text-muted">QR Kód (R)</dt>
+                        <dd class="col-sm-7">@(Model.RCode ?? "-")</dd>
+                    </dl>
+                </div>
+
+                <!-- JOBB OSZLOP: Tárolási hierarchia -->
+                <div class="col-md-6 ps-4">
+                    <h6 class="text-primary fw-bold border-bottom pb-2 mb-3"><i class="bi bi-geo-alt"></i> Tárolási hely</h6>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-muted">Cég / Tulaj.</dt>
+                        <dd class="col-sm-7 fw-bold">@(Model.Company?.Name ?? "-")</dd>
+
+                        <dt class="col-sm-5 text-muted">Épület</dt>
+                        <dd class="col-sm-7">@(Model.Building?.Name ?? "Nincs megadva")</dd>
+
+                        <dt class="col-sm-5 text-muted">Helyiség</dt>
+                        <dd class="col-sm-7">@(Model.Room?.Name ?? "Nincs megadva")</dd>
+
+                        <dt class="col-sm-5 text-muted">Polc/Sor</dt>
+                        <dd class="col-sm-7">@(Model.Shelf?.Identifier ?? "Nincs megadva")</dd>
+
+                        <dt class="col-sm-5 text-muted">Tárolóeszköz</dt>
+                        <dd class="col-sm-7">
+                            @if (Model.StorageContainer != null)
+                            {
+                                <span class="badge bg-info text-dark">@Model.StorageContainer.Name (@Model.StorageContainer.Type)</span>
+                            }
+                            else
+                            {
+                                <span>Nincs megadva</span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card-footer bg-white border-top-0 pt-3 pb-3">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning"><i class="bi bi-pencil"></i> Szerkesztés</a>
+                <a asp-action="Index" class="btn btn-outline-secondary ms-2">Vissza a listához</a>
+            </div>
+        </div>
+    </div>
+</div>

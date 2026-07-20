@@ -23,5 +23,43 @@ namespace RaktarKeszlet.Data
 
         public DbSet<Category> Categories { get; set; }
 
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Kikapcsoljuk a kaszkádolt törlést a Termék hierarchia-kapcsolatainál
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Company)
+                .WithMany()
+                .HasForeignKey(p => p.CompanyId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Building)
+                .WithMany()
+                .HasForeignKey(p => p.BuildingId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Room)
+                .WithMany()
+                .HasForeignKey(p => p.RoomId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Shelf)
+                .WithMany()
+                .HasForeignKey(p => p.ShelfId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.StorageContainer)
+                .WithMany()
+                .HasForeignKey(p => p.StorageContainerId)
+                .OnDelete(DeleteBehavior.NoAction);
+        }
+
     }
 }

@@ -1,26 +1,29 @@
-﻿@model RaktarKeszlet.ViewModels.ProductCreateViewModel
+﻿@model RaktarKeszlet.ViewModels.ProductEditViewModel
 @using RaktarKeszlet.Models
 
 @{
-    ViewData["Title"] = "Új termék rögzítése";
+    ViewData["Title"] = "Termék szerkesztése";
 }
 
-<h1>Új termék felvitele</h1>
-<p class="text-muted">A termék rögzítésekor meg tudod határozni a termék pontos tárolási helyét.</p>
+<h1>Termék adatainak szerkesztése</h1>
+<p class="text-muted">A termék adatait és a tárolási helyét itt tudod módosítani.</p>
 <hr />
 
-<!-- enctype KÖTELEZŐ a fájlfeltöltéshez! -->
-<form asp-action="Create" enctype="multipart/form-data" class="bg-light p-4 rounded shadow-sm border">
+<form asp-action="Edit" enctype="multipart/form-data" class="bg-light p-4 rounded shadow-sm border">
     <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
 
+    <!-- REJTETT MEZŐK: ID és Régi kép útvonal -->
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ExistingPhotoUrl" />
+
     <div class="row">
-        <!-- BAL OSZLOP: ALAPADATOK -->
+        <!-- BAL OSZLOP: Alapadatok -->
         <div class="col-md-6 border-end">
             <h5 class="mb-3 text-primary"><i class="bi bi-tag"></i> 1. Termék alapadatok</h5>
 
             <div class="mb-3">
                 <label asp-for="Name" class="form-label fw-bold">Termék neve *</label>
-                <input asp-for="Name" class="form-control form-control-lg" placeholder="Pl. Fúrógép, Harry Potter könyv" />
+                <input asp-for="Name" class="form-control form-control-lg" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
 
@@ -49,18 +52,25 @@
             </div>
 
             <div class="mb-4">
-                <label asp-for="Photo" class="form-label fw-bold">Fénykép feltöltése</label>
+                <label class="form-label fw-bold">Fénykép módosítása</label>
+                <div class="d-flex align-items-center mb-2">
+                    @if (!string.IsNullOrEmpty(Model.ExistingPhotoUrl))
+                    {
+                        <img src="@Model.ExistingPhotoUrl" class="img-thumbnail me-3" style="width: 80px; height: 80px; object-fit: cover;" alt="Jelenlegi kép" />
+                        <span class="text-muted small">Jelenlegi kép.<br />Ha nem töltesz fel újat, ez marad.</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">Ennél a terméknél nincs kép.</span>
+                    }
+                </div>
                 <input asp-for="Photo" type="file" class="form-control" accept="image/*" />
-                <div class="form-text text-muted">Tölts fel egy fotót (jpg, png). Opcionális.</div>
             </div>
         </div>
 
-        <!-- JOBB OSZLOP: TÁROLÁSI HIERARCHIA -->
+        <!-- JOBB OSZLOP: Tárolási hierarchia -->
         <div class="col-md-6 ps-4">
             <h5 class="mb-3 text-primary"><i class="bi bi-geo-alt"></i> 2. Tárolás helye</h5>
-            <div class="alert alert-warning py-2 mb-4">
-                <small>Elég csak a Céget megadni (pl. jármű egy cég udvarán), de le is fúrhatsz a pontos dobozig!</small>
-            </div>
 
             <div class="mb-3">
                 <label asp-for="CompanyId" class="form-label fw-bold">Cég / Tulajdonos *</label>
@@ -69,7 +79,6 @@
                 </select>
             </div>
 
-            <!-- Opcionális szintek láncolt legördülőkkel -->
             <div class="mb-3">
                 <label class="form-label text-muted">Épület</label>
                 <select asp-for="BuildingId" id="selBuilding" class="form-select">
@@ -94,9 +103,9 @@
 
             <div class="mb-3">
                 <label class="form-label text-muted">Polc/Sor</label>
-                <!-- Ha itt az Identifier helyett neked továbbra is Name van a Polcoknál, írd át az r.Identifier-t r.Name-re! -->
                 <select asp-for="ShelfId" id="selShelf" class="form-select">
                     <option value="">-- Nem adom meg --</option>
+                    <!-- Használd a s.Name-t, ha Identifier helyett nálad az fut a polcoknál -->
                     @foreach (var s in ViewBag.Shelves as List<Shelf> ?? new List<Shelf>())
                     {
                         <option value="@s.Id" data-parent="@s.RoomId">@s.Identifier</option>
@@ -118,19 +127,17 @@
     </div>
 
     <div class="mt-4 border-top pt-4 text-end">
-        <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Vissza a listához</a>
-        <button type="submit" class="btn btn-success btn-lg ms-2"><i class="bi bi-save"></i> Termék rögzítése</button>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Mégse, vissza</a>
+        <button type="submit" class="btn btn-warning btn-lg ms-2"><i class="bi bi-save"></i> Változtatások mentése</button>
     </div>
 </form>
 
-<!-- JS A LÁNCOLT SZŰRÉSHEZ -->
 @section Scripts {
     <script>
-        function filterSelect(sourceId, targetId) {
+        // Szerkesztéshez optimalizált, óvatos szűrő script, ami nem törli a meglévő választásokat betöltéskor
+        function applyFilter(sourceId, targetId) {
             var sourceVal = document.getElementById(sourceId).value;
             var targetSelect = document.getElementById(targetId);
-
-            targetSelect.value = "";
 
             Array.from(targetSelect.options).forEach(function(opt) {
                 if (opt.value === "") {
@@ -141,16 +148,35 @@
                     opt.style.display = "none";
                 }
             });
-            // Automatikus frissítés a következő szintre
-            targetSelect.dispatchEvent(new Event('change'));
         }
 
-        document.getElementById('selCompany').addEventListener('change', function() { filterSelect('selCompany', 'selBuilding'); });
-        document.getElementById('selBuilding').addEventListener('change', function() { filterSelect('selBuilding', 'selRoom'); });
-        document.getElementById('selRoom').addEventListener('change', function() { filterSelect('selRoom', 'selShelf'); });
-        document.getElementById('selShelf').addEventListener('change', function() { filterSelect('selShelf', 'selContainer'); });
+        // Felhasználói kattintás esetén (Ilyenkor direkt nullázzuk a lánc alatti elemeket)
+        document.getElementById('selCompany').addEventListener('change', function() {
+            document.getElementById('selBuilding').value = "";
+            applyFilter('selCompany', 'selBuilding');
+            document.getElementById('selBuilding').dispatchEvent(new Event('change'));
+        });
+        document.getElementById('selBuilding').addEventListener('change', function() {
+            document.getElementById('selRoom').value = "";
+            applyFilter('selBuilding', 'selRoom');
+            document.getElementById('selRoom').dispatchEvent(new Event('change'));
+        });
+        document.getElementById('selRoom').addEventListener('change', function() {
+            document.getElementById('selShelf').value = "";
+            applyFilter('selRoom', 'selShelf');
+            document.getElementById('selShelf').dispatchEvent(new Event('change'));
+        });
+        document.getElementById('selShelf').addEventListener('change', function() {
+            document.getElementById('selContainer').value = "";
+            applyFilter('selShelf', 'selContainer');
+        });
 
-        // Inicializálás betöltéskor
-        document.getElementById('selCompany').dispatchEvent(new Event('change'));
+        // Az oldal kezdeti betöltésekor végrehajtjuk a szűréseket, de a value (érték) törlése nélkül!
+        window.addEventListener('load', function() {
+            applyFilter('selCompany', 'selBuilding');
+            applyFilter('selBuilding', 'selRoom');
+            applyFilter('selRoom', 'selShelf');
+            applyFilter('selShelf', 'selContainer');
+        });
     </script>
 }

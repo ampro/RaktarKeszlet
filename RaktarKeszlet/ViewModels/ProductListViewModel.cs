@@ -7,20 +7,22 @@ namespace RaktarKeszlet.ViewModels
 {
     public class ProductListViewModel
     {
-        // Maguk a megjelenítendő termékek
         public IEnumerable<Product> Products { get; set; }
 
-        // A legördülő lista a kategória szűrőhöz
-        public SelectList Categories { get; set; }
+        // Lapozáshoz
+        public int CurrentPage { get; set; }
+        public int TotalPages { get; set; }
 
-        // Az éppen kiválasztott kategória (szűrésnél)
+        // Szűrési értékek, amiket a felhasználó beírt/kiválasztott
+        public string? SearchTerm { get; set; }
         public int? SelectedCategoryId { get; set; }
+        public int? SelectedBuildingId { get; set; }
+        public int? SelectedContainerId { get; set; }
 
-        // A szabad szavas keresőbe beírt szöveg
-        public string SearchTerm { get; set; }
-
-        // Ide jöhetnek majd a lapozáshoz szükséges mezők (pl. CurrentPage, TotalPages)
-
+        // Legördülő listák a felülethez
+        public SelectList Categories { get; set; }
+        public SelectList Buildings { get; set; }
+        public SelectList Containers { get; set; }
 
     }
 }
