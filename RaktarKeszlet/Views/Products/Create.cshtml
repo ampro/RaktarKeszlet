@@ -54,7 +54,7 @@
                 <div class="form-text text-muted">Tölts fel egy fotót (jpg, png). Opcionális.</div>
             </div>
         </div>
-        </form>
+       
         <!-- JOBB OSZLOP: Tárolási hierarchia -->
         <div class="col-md-6 ps-4">
             <h5 class="mb-3 text-primary"><i class="bi bi-geo-alt"></i> 2. Tárolás helye</h5>
@@ -132,7 +132,12 @@
                 <input asp-for="NewContainerName" id="NewContainerName" class="form-control mt-2 d-none border-success" placeholder="Új doboz vagy raklap neve..." />
             </div>
         </div>
-      
+        </div>
+    <div class="mt-4 border-top pt-4 text-end">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Mégse, vissza</a>
+        <button type="submit" class="btn btn-success btn-lg ms-2"><i class="bi bi-save"></i> Termék mentése</button>
+    </div>
+</form>
 @section Scripts {
             <script>
                 // Megjeleníti vagy elrejti a szöveges beviteli mezőt

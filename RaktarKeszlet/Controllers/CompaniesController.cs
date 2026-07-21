@@ -23,6 +23,8 @@ public class CompaniesController : Controller
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         var myCompanies = await _context.Companies
+            .Include(c => c.Products)
+            .ThenInclude(p => p.Category)
             .Where(c => c.UserId == currentUserId)
             .ToListAsync();
 
@@ -32,9 +34,11 @@ public class CompaniesController : Controller
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null) return NotFound();
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         var company = await _context.Companies
-            .FirstOrDefaultAsync(m => m.Id == id);
+            .Include(c => c.Products)
+            .FirstOrDefaultAsync(m => m.Id == id && m.UserId == currentUserId);
 
         if (company == null) return NotFound();
 
@@ -64,6 +68,11 @@ public class CompaniesController : Controller
         ModelState.Remove("UserId");
         ModelState.Remove("User");
         ModelState.Remove("Buildings");
+        ModelState.Remove("StorageContainers");
+      
+        ModelState.Remove("Products");
+        ModelState.Remove("UserId");
+       
 
         if (ModelState.IsValid)
         {
@@ -81,6 +90,8 @@ public class CompaniesController : Controller
         {
             return NotFound();
         }
+
+        ModelState.Remove("User");
 
         var company = await _context.Companies.FindAsync(id);
         if (company == null)
@@ -102,6 +113,10 @@ public class CompaniesController : Controller
             return NotFound();
         }
 
+
+        ModelState.Remove("User");
+        
+        
         if (ModelState.IsValid)
         {
             try

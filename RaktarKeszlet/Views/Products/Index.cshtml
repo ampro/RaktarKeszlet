@@ -19,30 +19,77 @@
 <!-- SZŰRŐ ÉS KERESŐ SÁV -->
 <form method="get" asp-action="Index" class="bg-light p-3 rounded shadow-sm mb-4 border">
     <div class="row g-2 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label fw-bold">Keresés (Név, Vonalkód)</label>
-            <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control" placeholder="Szabad szavas kereső..." />
-        </div>
         <div class="col-md-2">
-            <label class="form-label fw-bold">Kategória</label>
-            <select name="selectedCategoryId" class="form-select" asp-items="Model.Categories">
+            <label class="form-label fw-bold small">Keresés</label>
+            <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control form-control-sm" placeholder="Név, vonalkód..." />
+        </div>
+
+        <!-- CÉG SZŰRŐ (Ez irányítja a többit) -->
+        <div class="col-md-2">
+            <label class="form-label fw-bold small">Cég</label>
+            <select name="selectedCompanyId" id="searchCompany" class="form-select form-select-sm">
+                <option value="">Mindegyik</option>
+                @foreach (var c in Model.Companies)
+                {
+                    if (Model.SelectedCompanyId == c.Id)
+                    {
+                        <option value="@c.Id" selected>@c.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@c.Id">@c.Name</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <!-- ÉPÜLET SZŰRŐ (A data-company tartalmazza, hogy hova tartozik) -->
+        <div class="col-md-2">
+            <label class="form-label fw-bold small">Épület</label>
+            <select name="selectedBuildingId" id="searchBuilding" class="form-select form-select-sm">
+                <option value="">Bárhol</option>
+                @foreach (var b in Model.Buildings)
+                {
+                    if (Model.SelectedBuildingId == b.Id)
+                    {
+                        <option value="@b.Id" data-company="@b.CompanyId" selected>@b.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@b.Id" data-company="@b.CompanyId">@b.Name</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <!-- TÁROLÓ SZŰRŐ -->
+        <div class="col-md-2">
+            <label class="form-label fw-bold small">Doboz/Raklap</label>
+            <select name="selectedContainerId" id="searchContainer" class="form-select form-select-sm">
+                <option value="">Bármiben</option>
+                @foreach (var c in Model.Containers)
+                {
+                    if (Model.SelectedContainerId == c.Id)
+                    {
+                        <option value="@c.Id" data-company="@c.CompanyId" selected>@c.Name (@c.Type)</option>
+                    }
+                    else
+                    {
+                        <option value="@c.Id" data-company="@c.CompanyId">@c.Name (@c.Type)</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label fw-bold small">Kategória</label>
+            <select name="selectedCategoryId" class="form-select form-select-sm" asp-items="Model.Categories">
                 <option value="">Mindegyik</option>
             </select>
         </div>
+
         <div class="col-md-2">
-            <label class="form-label fw-bold">Épület</label>
-            <select name="selectedBuildingId" class="form-select" asp-items="Model.Buildings">
-                <option value="">Bárhol</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label fw-bold">Doboz/Raklap</label>
-            <select name="selectedContainerId" class="form-select" asp-items="Model.Containers">
-                <option value="">Bármiben</option>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Szűrés</button>
+            <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search"></i> Szűrés</button>
         </div>
     </div>
 </form>
@@ -110,4 +157,50 @@
             }
         </ul>
     </nav>
+}
+
+@section Scripts {
+    <script>
+        function applyFilterCascade() {
+            var selectedCompany = document.getElementById('searchCompany').value;
+            var buildingSelect = document.getElementById('searchBuilding');
+            var containerSelect = document.getElementById('searchContainer');
+
+            // 1. Épületek szűrése a Cég alapján
+            Array.from(buildingSelect.options).forEach(function(opt) {
+                if (opt.value === "" || selectedCompany === "") {
+                    opt.style.display = ""; // Ha nincs cég választva, mindegyik épületet mutatjuk
+                } else if (opt.getAttribute("data-company") === selectedCompany) {
+                    opt.style.display = ""; // Ha megegyezik a cég azonosítója
+                } else {
+                    opt.style.display = "none"; // Elrejtés
+                    // Ha véletlenül egy elrejtett elem volt már kiválasztva, nullázzuk
+                    if (buildingSelect.value === opt.value) {
+                        buildingSelect.value = "";
+                    }
+                }
+            });
+
+            // 2. Tárolók szűrése a Cég alapján
+            Array.from(containerSelect.options).forEach(function(opt) {
+                if (opt.value === "" || selectedCompany === "") {
+                    opt.style.display = "";
+                } else if (opt.getAttribute("data-company") === selectedCompany) {
+                    opt.style.display = "";
+                } else {
+                    opt.style.display = "none";
+                    if (containerSelect.value === opt.value) {
+                        containerSelect.value = "";
+                    }
+                }
+            });
+        }
+
+        // Amikor a felhasználó céget vált, fusson le a szűrés:
+        document.getElementById('searchCompany').addEventListener('change', applyFilterCascade);
+
+        // Az oldal betöltésekor is fusson le, hogy ha például már volt kiválasztott Cég a URL-ben,
+        // a többi menü kapásból szűrve töltődjön be!
+        window.addEventListener('load', applyFilterCascade);
+    </script>
 }

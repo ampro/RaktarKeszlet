@@ -32,36 +32,30 @@ public class ProductsController : Controller
 
     // GET: PRODUCTS
 
-    public async Task<IActionResult> Index(string? searchTerm, int? selectedCategoryId, int? selectedBuildingId, int? selectedContainerId, int page = 1)
+    public async Task<IActionResult> Index(string? searchTerm, int? selectedCategoryId, int? selectedCompanyId, int? selectedBuildingId, int? selectedContainerId, int page = 1)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // 1. Alap lekérdezés + JOGOSULTSÁG SZÛRÉS (Csak a saját cég termékei!)
+        // 1. Alap lekérdezés + Jogosultság szûrés
         var productsQuery = _context.Products
             .Include(p => p.Category)
             .Include(p => p.Company)
             .Where(p => p.Company.UserId == currentUserId)
             .AsQueryable();
 
-        // 2. Szûrés Kategóriára
+        // 2. SZÛRÉSEK ALKALMAZÁSA
         if (selectedCategoryId.HasValue)
-        {
             productsQuery = productsQuery.Where(p => p.CategoryId == selectedCategoryId.Value);
-        }
 
-        // 3. Szûrés Épületre (Raktárra)
+        if (selectedCompanyId.HasValue) // ÚJ: Cég szûrése
+            productsQuery = productsQuery.Where(p => p.CompanyId == selectedCompanyId.Value);
+
         if (selectedBuildingId.HasValue)
-        {
             productsQuery = productsQuery.Where(p => p.BuildingId == selectedBuildingId.Value);
-        }
 
-        // 4. Szûrés Tárolóeszközre (Doboz/Raklap)
         if (selectedContainerId.HasValue)
-        {
             productsQuery = productsQuery.Where(p => p.StorageContainerId == selectedContainerId.Value);
-        }
 
-        // 5. Szabad szavas keresõ (Név vagy Vonalkód)
         if (!string.IsNullOrEmpty(searchTerm))
         {
             productsQuery = productsQuery.Where(p =>
@@ -69,23 +63,24 @@ public class ProductsController : Controller
                 (p.Barcode != null && p.Barcode.Contains(searchTerm)));
         }
 
-        // 6. Lapozás beállítása
+        // 3. Lapozás beállítása
         int pageSize = 10;
         var totalItems = await productsQuery.CountAsync();
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
         var pagedProducts = await productsQuery
-            .OrderByDescending(p => p.Id) // Legújabbak elöl
+            .OrderByDescending(p => p.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        // 7. Legördülõ listák lekérése a saját adatokból
+        // 4. Adatok a legördülõkhöz
         var myCategories = await _context.Categories.ToListAsync();
+        var myCompanies = await _context.Companies.Where(c => c.UserId == currentUserId).ToListAsync();
         var myBuildings = await _context.Buildings.Where(b => b.Company.UserId == currentUserId).ToListAsync();
         var myContainers = await _context.StorageContainers.Where(c => c.Company.UserId == currentUserId).ToListAsync();
 
-        // 8. ViewModel összeállítása
+        // 5. ViewModel összeállítása
         var viewModel = new ProductListViewModel
         {
             Products = pagedProducts,
@@ -93,11 +88,13 @@ public class ProductsController : Controller
             TotalPages = totalPages,
             SearchTerm = searchTerm,
             SelectedCategoryId = selectedCategoryId,
+            SelectedCompanyId = selectedCompanyId, // ÚJ
             SelectedBuildingId = selectedBuildingId,
             SelectedContainerId = selectedContainerId,
             Categories = new SelectList(myCategories, "Id", "Name", selectedCategoryId),
-            Buildings = new SelectList(myBuildings, "Id", "Name", selectedBuildingId),
-            Containers = new SelectList(myContainers, "Id", "Name", selectedContainerId)
+            Companies = myCompanies,
+            Buildings = myBuildings,
+            Containers = myContainers
         };
 
         return View(viewModel);

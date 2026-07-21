@@ -88,11 +88,26 @@ public class BuildingsController : Controller
             return NotFound();
         }
 
-        var building = await _context.Buildings.FindAsync(id);
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // 1. Lekérjük az épületet, de biztonsági okokból ellenõrizzük, 
+        // hogy a bejelentkezett felhasználó cégéhez tartozik-e!
+        var building = await _context.Buildings
+            .Include(b => b.Company)
+            .FirstOrDefaultAsync(m => m.Id == id && m.Company.UserId == currentUserId);
+
         if (building == null)
         {
             return NotFound();
         }
+
+        // 2. Csak a felhasználó saját cégeit adjuk át a legördülõ listának
+        var myCompanies = await _context.Companies
+            .Where(c => c.UserId == currentUserId)
+            .ToListAsync();
+
+        ViewData["CompanyId"] = new SelectList(myCompanies, "Id", "Name", building.CompanyId);
+
         return View(building);
     }
 
@@ -101,15 +116,30 @@ public class BuildingsController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? id, [Bind("Id,Name,CompanyId,Company,Rooms")] Building building)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Name,CompanyId")] Building building)
     {
         if (id != building.Id)
         {
             return NotFound();
         }
 
+        // Kivesszük a navigációs és alsóbb szintû tulajdonságokat a kötelezõ validációból
+        ModelState.Remove("Company");
+        ModelState.Remove("Rooms");
+
         if (ModelState.IsValid)
         {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Opcionális biztonsági lépés: Ellenõrizzük, hogy a kiválasztott új cég is a sajátja-e
+            var isOwnCompany = await _context.Companies
+                .AnyAsync(c => c.Id == building.CompanyId && c.UserId == currentUserId);
+
+            if (!isOwnCompany)
+            {
+                return Unauthorized(); // Ha valaki megpróbálja "áthekkelni" más cégéhez
+            }
+
             try
             {
                 _context.Update(building);
@@ -128,7 +158,22 @@ public class BuildingsController : Controller
             }
             return RedirectToAction(nameof(Index));
         }
+
+        // --- HIBA ESETÉN A LISTÁK ÚJRATÖLTÉSE ---
+        var currentUserIdErr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var myCompaniesErr = await _context.Companies
+            .Where(c => c.UserId == currentUserIdErr)
+            .ToListAsync();
+
+        ViewData["CompanyId"] = new SelectList(myCompaniesErr, "Id", "Name", building.CompanyId);
+
         return View(building);
+    }
+
+    // Segédfüggvény (Ha még nincs benne a fájlod legalján)
+    private bool BuildingExists(int id)
+    {
+        return _context.Buildings.Any(e => e.Id == id);
     }
 
     // GET: BUILDINGS/Delete/5

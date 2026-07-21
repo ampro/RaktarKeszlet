@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using RaktarKeszlet.Models;
+using System.Reflection.Emit;
 
 namespace RaktarKeszlet.Data
 {
@@ -59,6 +60,15 @@ namespace RaktarKeszlet.Data
                 .WithMany()
                 .HasForeignKey(p => p.StorageContainerId)
                 .OnDelete(DeleteBehavior.NoAction);
+            // Megmondjuk az EF-nek, hogy a Cégek és a Felhasználók kapcsolata NEM 1:1,
+            // így az index nem lehet egyedi (IsUnique = false).
+            modelBuilder.Entity<Company>()
+                .HasIndex(c => c.UserId)
+                .IsUnique(false);
+
+
+
+
         }
 
     }
