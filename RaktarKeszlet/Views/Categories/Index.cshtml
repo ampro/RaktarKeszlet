@@ -1,0 +1,54 @@
+@model IEnumerable<RaktarKeszlet.Models.Category>
+
+@{
+    ViewData["Title"] = "Kategóriák";
+}
+
+<h1>Termék kategóriák</h1>
+<p class="text-muted">Itt kezelheted a termékek besorolásához használt kategóriákat (pl. könyv, szerszám, alkatrész) [2].</p>
+
+<p>
+    <a asp-action="Create" class="btn btn-success shadow-sm">
+        <i class="bi bi-plus-circle"></i> Új kategória felvitele
+    </a>
+</p>
+
+<div class="table-responsive shadow-sm rounded">
+    <table class="table table-striped table-hover align-middle mb-0">
+        <thead class="table-dark">
+            <tr>
+                <th>Kategória megnevezése</th>
+                <th class="text-center">Hozzárendelt termékek</th>
+                <th class="text-end">Összesített érték</th>
+                <th class="text-end">Mûveletek</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="4" class="text-center text-muted py-4">Még nincs kategória rögzítve.</td></tr>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-bold fs-5">@item.Name</td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary rounded-pill fs-6">@(item.Products?.Count ?? 0) db</span>
+                        </td>
+                        <td class="text-end text-success fw-bold fs-6">
+                            <!-- Kiszámoljuk a kategóriában lévõ összes termék árának összegét -->
+                            @(item.Products?.Sum(p => p.Price).ToString("N0") ?? "0") Ft
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

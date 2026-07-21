@@ -1,0 +1,31 @@
+@model RaktarKeszlet.Models.Category
+
+@{
+    ViewData["Title"] = "Kategória szerkesztése";
+}
+
+<h1>Kategória szerkesztése</h1>
+<p class="text-muted">Itt módosíthatod a meglévõ kategória nevét.</p>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit" class="bg-light p-4 rounded shadow-sm border">
+            <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
+
+            <!-- REJTETT MEZÕ: A kategória azonosítója a mentéshez -->
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label fw-bold">Kategória neve</label>
+                <input asp-for="Name" class="form-control form-control-lg" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mt-4 border-top pt-4">
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Mégse, vissza</a>
+                <button type="submit" class="btn btn-warning btn-lg ms-2"><i class="bi bi-save"></i> Változtatások mentése</button>
+            </div>
+        </form>
+    </div>
+</div>

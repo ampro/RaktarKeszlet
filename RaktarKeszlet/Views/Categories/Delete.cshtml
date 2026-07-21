@@ -1,0 +1,35 @@
+@model RaktarKeszlet.Models.Category
+
+@{
+    ViewData["Title"] = "Kategória törlése";
+}
+
+<h1 class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Törlés jóváhagyása</h1>
+<h3>Biztosan törölni szeretnéd ezt a kategóriát?</h3>
+<p class="text-muted">A mûvelet végleges. A kategóriához tartozó termékek nem törlõdnek, de elveszítik ezt a besorolást!</p>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Törlendõ kategória adatai</h5>
+            </div>
+
+            <div class="card-body bg-light">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">Kategória neve</dt>
+                    <dd class="col-sm-8 fw-bold fs-4">@Model.Name</dd>
+                </dl>
+            </div>
+
+            <div class="card-footer bg-white border-top-0 pt-3 pb-3">
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Igen, véglegesen törlöm</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary ms-2">Mégse, vissza</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

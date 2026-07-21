@@ -1,0 +1,39 @@
+@model RaktarKeszlet.Models.Category
+
+@{
+    ViewData["Title"] = "Kategória részletei";
+}
+
+<h1>Kategória részletei</h1>
+<p class="text-muted">A kategória statisztikái és alapadatai.</p>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-info">
+            <div class="card-header bg-info text-dark">
+                <h5 class="mb-0"><i class="bi bi-folder-fill"></i> Kategória adatai</h5>
+            </div>
+            <div class="card-body bg-light">
+                <dl class="row mb-0 align-items-center">
+                    <dt class="col-sm-5 text-muted">Kategória neve</dt>
+                    <dd class="col-sm-7 fw-bold fs-4 mb-0">@Model.Name</dd>
+
+                    <dt class="col-sm-5 text-muted mt-4">Termékek száma</dt>
+                    <dd class="col-sm-7 mt-4 mb-0">
+                        <span class="badge bg-secondary rounded-pill fs-5 shadow-sm">@(Model.Products?.Count ?? 0) db</span>
+                    </dd>
+
+                    <dt class="col-sm-5 text-muted mt-4">Összesített érték</dt>
+                    <dd class="col-sm-7 mt-4 mb-0">
+                        <span class="badge bg-success rounded-pill fs-5 shadow-sm">@(Model.Products?.Sum(p => p.Price).ToString("N0") ?? "0") Ft</span>
+                    </dd>
+                </dl>
+            </div>
+            <div class="card-footer bg-white border-top-0 pt-3 pb-3">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning"><i class="bi bi-pencil"></i> Szerkesztés</a>
+                <a asp-action="Index" class="btn btn-outline-secondary ms-2">Vissza a listához</a>
+            </div>
+        </div>
+    </div>
+</div>
