@@ -36,5 +36,13 @@ namespace RaktarKeszlet.ViewModels
         public int? BuildingId { get; set; }
         public int? RoomId { get; set; }
         public int? ShelfId { get; set; }
+
+        // --- ÚJ MEZŐK A HELYBEN LÉTREHOZÁSHOZ ---
+        public string? NewCompanyName { get; set; }
+        public string? NewBuildingName { get; set; }
+        public string? NewRoomName { get; set; }
+        public string? NewShelfIdentifier { get; set; }
+        public string? NewContainerName { get; set; }
+
     }
 }

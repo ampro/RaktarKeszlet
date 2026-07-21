@@ -163,9 +163,57 @@ public class ProductsController : Controller
 
         if (ModelState.IsValid)
         {
-            string uploadedPhotoUrl = null;
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // 1. KÉPFELTÖLTÉS KEZELÉSE
+            // --- 1. ÚJ HIERARCHIA SZINTEK LÉTREHOZÁSA (Ha a felhasználó az "Új hozzáadása" opciót választotta) ---
+            if (vm.CompanyId == -1 && !string.IsNullOrWhiteSpace(vm.NewCompanyName))
+            {
+                var newCompany = new Company { Name = vm.NewCompanyName, UserId = currentUserId };
+                _context.Companies.Add(newCompany);
+                await _context.SaveChangesAsync();
+                vm.CompanyId = newCompany.Id; // Az új ID-t átadjuk a ViewModelnek
+            }
+
+            if (vm.BuildingId == -1 && !string.IsNullOrWhiteSpace(vm.NewBuildingName) && vm.CompanyId > 0)
+            {
+                var newBuilding = new Building { Name = vm.NewBuildingName, CompanyId = vm.CompanyId };
+                _context.Buildings.Add(newBuilding);
+                await _context.SaveChangesAsync();
+                vm.BuildingId = newBuilding.Id;
+            }
+
+            if (vm.RoomId == -1 && !string.IsNullOrWhiteSpace(vm.NewRoomName) && vm.BuildingId > 0)
+            {
+                var newRoom = new Room { Name = vm.NewRoomName, BuildingId = vm.BuildingId.Value };
+                _context.Rooms.Add(newRoom);
+                await _context.SaveChangesAsync();
+                vm.RoomId = newRoom.Id;
+            }
+
+            if (vm.ShelfId == -1 && !string.IsNullOrWhiteSpace(vm.NewShelfIdentifier) && vm.RoomId > 0)
+            {
+                var newShelf = new Shelf { Identifier = vm.NewShelfIdentifier, RoomId = vm.RoomId.Value };
+                _context.Shelves.Add(newShelf);
+                await _context.SaveChangesAsync();
+                vm.ShelfId = newShelf.Id;
+            }
+
+            if (vm.StorageContainerId == -1 && !string.IsNullOrWhiteSpace(vm.NewContainerName) && vm.CompanyId > 0)
+            {
+                var newContainer = new StorageContainer
+                {
+                    Name = vm.NewContainerName,
+                    Type = "kartondoboz", // Alapértelmezés a terv szerint
+                    CompanyId = vm.CompanyId,
+                    ShelfId = vm.ShelfId > 0 ? vm.ShelfId : null
+                };
+                _context.StorageContainers.Add(newContainer);
+                await _context.SaveChangesAsync();
+                vm.StorageContainerId = newContainer.Id;
+            }
+
+            // --- 2. KÉPFELTÖLTÉS KEZELÉSE ---
+            string uploadedPhotoUrl = null;
             if (vm.Photo != null)
             {
                 // Létrehozzuk a wwwroot/images mappát, ha még nem létezne
@@ -189,7 +237,7 @@ public class ProductsController : Controller
                 uploadedPhotoUrl = "/images/" + uniqueFileName;
             }
 
-            // 2. PRODUCT ENTITÁS ÖSSZEÁLLÍTÁSA A VIEWMODEL ALAPJÁN
+            // --- 3. PRODUCT ENTITÁS ÖSSZEÁLLÍTÁSA A VIEWMODEL ALAPJÁN ---
             var product = new Product
             {
                 Name = vm.Name,
@@ -199,12 +247,12 @@ public class ProductsController : Controller
                 CategoryId = vm.CategoryId,
                 PhotoUrl = uploadedPhotoUrl,
 
-                // Hierarchia (lehet bennük null is, ha a felhasználó csak Céget adott meg)
+                // Hierarchia (Itt már a frissített, vagy a fentebb frissen létrehozott ID-k szerepelnek)
                 CompanyId = vm.CompanyId,
-                BuildingId = vm.BuildingId,
-                RoomId = vm.RoomId,
-                ShelfId = vm.ShelfId,
-                StorageContainerId = vm.StorageContainerId
+                BuildingId = vm.BuildingId > 0 ? vm.BuildingId : null,
+                RoomId = vm.RoomId > 0 ? vm.RoomId : null,
+                ShelfId = vm.ShelfId > 0 ? vm.ShelfId : null,
+                StorageContainerId = vm.StorageContainerId > 0 ? vm.StorageContainerId : null
             };
 
             _context.Add(product);
@@ -213,16 +261,16 @@ public class ProductsController : Controller
         }
 
         // --- HA HIBA VAN, ÚJRATÖLTJÜK AZ ADATOKAT A VIEWMODEL-BE ---
-        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var currentUserIdErr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         vm.Categories = new SelectList(_context.Categories, "Id", "Name", vm.CategoryId);
 
-        var myCompanies = _context.Companies.Where(c => c.UserId == currentUserId).ToList();
+        var myCompanies = _context.Companies.Where(c => c.UserId == currentUserIdErr).ToList();
         ViewData["CompanyId"] = new SelectList(myCompanies, "Id", "Name", vm.CompanyId);
 
-        ViewBag.Buildings = _context.Buildings.Where(b => b.Company.UserId == currentUserId).ToList();
-        ViewBag.Rooms = _context.Rooms.Where(r => r.Building.Company.UserId == currentUserId).ToList();
-        ViewBag.Shelves = _context.Shelves.Where(s => s.Room.Building.Company.UserId == currentUserId).ToList();
-        ViewBag.Containers = _context.StorageContainers.Where(s => s.Company.UserId == currentUserId).ToList();
+        ViewBag.Buildings = _context.Buildings.Where(b => b.Company.UserId == currentUserIdErr).ToList();
+        ViewBag.Rooms = _context.Rooms.Where(r => r.Building.Company.UserId == currentUserIdErr).ToList();
+        ViewBag.Shelves = _context.Shelves.Where(s => s.Room.Building.Company.UserId == currentUserIdErr).ToList();
+        ViewBag.Containers = _context.StorageContainers.Where(s => s.Company.UserId == currentUserIdErr).ToList();
 
         return View(vm);
     }

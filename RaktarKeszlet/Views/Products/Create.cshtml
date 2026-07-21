@@ -54,103 +54,124 @@
                 <div class="form-text text-muted">Tölts fel egy fotót (jpg, png). Opcionális.</div>
             </div>
         </div>
-
-        <!-- JOBB OSZLOP: TÁROLÁSI HIERARCHIA -->
+        </form>
+        <!-- JOBB OSZLOP: Tárolási hierarchia -->
         <div class="col-md-6 ps-4">
             <h5 class="mb-3 text-primary"><i class="bi bi-geo-alt"></i> 2. Tárolás helye</h5>
             <div class="alert alert-warning py-2 mb-4">
-                <small>Elég csak a Céget megadni (pl. jármű egy cég udvarán), de le is fúrhatsz a pontos dobozig!</small>
+                <small>Bármelyik szinten létrehozhatsz új elemet a legördülő lista alján lévő opcióval!</small>
             </div>
 
+            <!-- CÉG -->
             <div class="mb-3">
                 <label asp-for="CompanyId" class="form-label fw-bold">Cég / Tulajdonos *</label>
-                <select asp-for="CompanyId" class="form-select border-primary" asp-items="ViewBag.CompanyId" id="selCompany">
+                <select asp-for="CompanyId" class="form-select border-primary" id="selCompany" onchange="toggleNew('selCompany', 'NewCompanyName')">
                     <option value="">-- Válassz céget! --</option>
+                    @foreach (var c in ViewBag.CompanyId.Items)
+                    {
+                        <option value="@c.Id">@c.Name</option>
+                    }
+                    <option value="-1" class="text-success fw-bold">➕ Új cég rögzítése...</option>
                 </select>
+                <input asp-for="NewCompanyName" id="NewCompanyName" class="form-control mt-2 d-none border-success" placeholder="Írd be az új cég nevét..." />
             </div>
 
-            <!-- Opcionális szintek láncolt legördülőkkel -->
+            <!-- ÉPÜLET -->
             <div class="mb-3">
                 <label class="form-label text-muted">Épület</label>
-                <select asp-for="BuildingId" id="selBuilding" class="form-select">
+                <select asp-for="BuildingId" id="selBuilding" class="form-select" onchange="toggleNew('selBuilding', 'NewBuildingName')">
                     <option value="">-- Nem adom meg --</option>
                     @foreach (var b in ViewBag.Buildings as List<Building> ?? new List<Building>())
                     {
                         <option value="@b.Id" data-parent="@b.CompanyId">@b.Name</option>
                     }
+                    <option value="-1" class="text-success fw-bold">➕ Új épület rögzítése...</option>
                 </select>
+                <input asp-for="NewBuildingName" id="NewBuildingName" class="form-control mt-2 d-none border-success" placeholder="Írd be az új épület nevét..." />
             </div>
 
+            <!-- HELYISÉG -->
             <div class="mb-3">
                 <label class="form-label text-muted">Helyiség</label>
-                <select asp-for="RoomId" id="selRoom" class="form-select">
+                <select asp-for="RoomId" id="selRoom" class="form-select" onchange="toggleNew('selRoom', 'NewRoomName')">
                     <option value="">-- Nem adom meg --</option>
                     @foreach (var r in ViewBag.Rooms as List<Room> ?? new List<Room>())
                     {
                         <option value="@r.Id" data-parent="@r.BuildingId">@r.Name</option>
                     }
+                    <option value="-1" class="text-success fw-bold">➕ Új helyiség rögzítése...</option>
                 </select>
+                <input asp-for="NewRoomName" id="NewRoomName" class="form-control mt-2 d-none border-success" placeholder="Írd be az új helyiség nevét..." />
             </div>
 
+            <!-- POLC/SOR -->
             <div class="mb-3">
                 <label class="form-label text-muted">Polc/Sor</label>
-                <!-- Ha itt az Identifier helyett neked továbbra is Name van a Polcoknál, írd át az r.Identifier-t r.Name-re! -->
-                <select asp-for="ShelfId" id="selShelf" class="form-select">
+                <select asp-for="ShelfId" id="selShelf" class="form-select" onchange="toggleNew('selShelf', 'NewShelfIdentifier')">
                     <option value="">-- Nem adom meg --</option>
                     @foreach (var s in ViewBag.Shelves as List<Shelf> ?? new List<Shelf>())
                     {
                         <option value="@s.Id" data-parent="@s.RoomId">@s.Identifier</option>
                     }
+                    <option value="-1" class="text-success fw-bold">➕ Új polc rögzítése...</option>
                 </select>
+                <input asp-for="NewShelfIdentifier" id="NewShelfIdentifier" class="form-control mt-2 d-none border-success" placeholder="Pl. A-sor, 1-es polc..." />
             </div>
 
+            <!-- TÁROLÓ -->
             <div class="mb-3">
-                <label asp-for="StorageContainerId" class="form-label fw-bold">Tárolóeszköz (Doboz/Raklap)</label>
-                <select asp-for="StorageContainerId" id="selContainer" class="form-select border-info">
+                <label class="form-label fw-bold">Tárolóeszköz (Doboz/Raklap)</label>
+                <select asp-for="StorageContainerId" id="selContainer" class="form-select border-info" onchange="toggleNew('selContainer', 'NewContainerName')">
                     <option value="">-- Nem adom meg --</option>
                     @foreach (var c in ViewBag.Containers as List<StorageContainer> ?? new List<StorageContainer>())
                     {
                         <option value="@c.Id" data-parent="@c.ShelfId">@c.Name (@c.Type)</option>
                     }
+                    <option value="-1" class="text-success fw-bold">➕ Új tároló rögzítése...</option>
                 </select>
+                <input asp-for="NewContainerName" id="NewContainerName" class="form-control mt-2 d-none border-success" placeholder="Új doboz vagy raklap neve..." />
             </div>
         </div>
-    </div>
-
-    <div class="mt-4 border-top pt-4 text-end">
-        <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Vissza a listához</a>
-        <button type="submit" class="btn btn-success btn-lg ms-2"><i class="bi bi-save"></i> Termék rögzítése</button>
-    </div>
-</form>
-
-<!-- JS A LÁNCOLT SZŰRÉSHEZ -->
+      
 @section Scripts {
-    <script>
-        function filterSelect(sourceId, targetId) {
-            var sourceVal = document.getElementById(sourceId).value;
-            var targetSelect = document.getElementById(targetId);
-
-            targetSelect.value = "";
-
-            Array.from(targetSelect.options).forEach(function(opt) {
-                if (opt.value === "") {
-                    opt.style.display = "";
-                } else if (opt.getAttribute("data-parent") === sourceVal && sourceVal !== "") {
-                    opt.style.display = "";
-                } else {
-                    opt.style.display = "none";
+            <script>
+                // Megjeleníti vagy elrejti a szöveges beviteli mezőt
+                function toggleNew(selectId, inputId) {
+                    var select = document.getElementById(selectId);
+                    var input = document.getElementById(inputId);
+                    if (select.value === "-1") {
+                        input.classList.remove('d-none');
+                        input.required = true; // Ha újat kért, kötelező beírni a nevet
+                    } else {
+                        input.classList.add('d-none');
+                        input.required = false;
+                        input.value = "";
+                    }
                 }
-            });
-            // Automatikus frissítés a következő szintre
-            targetSelect.dispatchEvent(new Event('change'));
-        }
 
-        document.getElementById('selCompany').addEventListener('change', function() { filterSelect('selCompany', 'selBuilding'); });
-        document.getElementById('selBuilding').addEventListener('change', function() { filterSelect('selBuilding', 'selRoom'); });
-        document.getElementById('selRoom').addEventListener('change', function() { filterSelect('selRoom', 'selShelf'); });
-        document.getElementById('selShelf').addEventListener('change', function() { filterSelect('selShelf', 'selContainer'); });
+                // A láncolt szűrés módosítva, hogy a "-1" (Új hozzáadása) opció mindig látszódjon
+                function filterSelect(sourceId, targetId) {
+                    var sourceVal = document.getElementById(sourceId).value;
+                    var targetSelect = document.getElementById(targetId);
 
-        // Inicializálás betöltéskor
-        document.getElementById('selCompany').dispatchEvent(new Event('change'));
-    </script>
+                    targetSelect.value = "";
+                    toggleNew(targetId, 'New' + targetId.replace('sel', '') + 'Name'); // Ha van cél mező neve
+
+                    Array.from(targetSelect.options).forEach(function(opt) {
+                        if (opt.value === "" || opt.value === "-1") {
+                            opt.style.display = ""; // Az üres és az "Új" mindig látszik
+                        } else if (sourceVal !== "-1" && opt.getAttribute("data-parent") === sourceVal && sourceVal !== "") {
+                            opt.style.display = ""; // Ha a szülő létezik és megegyezik
+                        } else {
+                            opt.style.display = "none"; // Egyébként elrejtjük (pl. ha a szülő egy "Új" -1 elem)
+                        }
+                    });
+                    targetSelect.dispatchEvent(new Event('change'));
+                }
+
+                document.getElementById('selCompany').addEventListener('change', function() { filterSelect('selCompany', 'selBuilding'); });
+                document.getElementById('selBuilding').addEventListener('change', function() { filterSelect('selBuilding', 'selRoom'); });
+                document.getElementById('selRoom').addEventListener('change', function() { filterSelect('selRoom', 'selShelf'); });
+                document.getElementById('selShelf').addEventListener('change', function() { filterSelect('selShelf', 'selContainer'); });
+            </script>
 }
