@@ -6,6 +6,7 @@ using RaktarKeszlet.Data;
 using RaktarKeszlet.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 [Authorize]
 public class ShelvesController : Controller
@@ -53,11 +54,16 @@ public class ShelvesController : Controller
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Végigmegyünk a hierarchián: Helyiség -> Épület -> Cég -> Felhasználó
-        var myRooms = _context.Rooms
-            .Where(r => r.Building.Company.UserId == currentUserId);
+        // 1. Cégek (Hierarchia csúcsa - csak UI szûréshez)
+        var myCompanies = _context.Companies.Where(c => c.UserId == currentUserId).ToList();
+        ViewBag.Companies = new SelectList(myCompanies, "Id", "Name");
 
-        ViewData["RoomId"] = new SelectList(myRooms, "Id", "Name");
+        // 2. Épületek (Köztes szint - csak UI szûréshez)
+        ViewBag.Buildings = _context.Buildings.Where(b => b.Company.UserId == currentUserId).ToList();
+
+        // 3. Helyiségek (Ez a polc közvetlen szülõje, ezt fogjuk elmenteni!)
+        ViewBag.Rooms = _context.Rooms.Where(r => r.Building.Company.UserId == currentUserId).ToList();
+
         return View();
     }
 
@@ -65,7 +71,7 @@ public class ShelvesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Id,Identifier,RoomId")] Shelf shelf)
     {
-        // Kapcsolatok kivétele a validációból
+        // Kivesszük a validációból a navigációs propertyket és az alsóbb szinteket
         ModelState.Remove("Room");
         ModelState.Remove("StorageContainers");
 
@@ -76,10 +82,12 @@ public class ShelvesController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        // Hiba esetén a lista újratöltése a saját helyiségekkel
+        // --- HIBA ESETÉN A LISTÁK ÚJRATÖLTÉSE ---
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var myRooms = _context.Rooms.Where(r => r.Building.Company.UserId == currentUserId);
-        ViewData["RoomId"] = new SelectList(myRooms, "Id", "Name", shelf.RoomId);
+        var myCompanies = _context.Companies.Where(c => c.UserId == currentUserId).ToList();
+        ViewBag.Companies = new SelectList(myCompanies, "Id", "Name");
+        ViewBag.Buildings = _context.Buildings.Where(b => b.Company.UserId == currentUserId).ToList();
+        ViewBag.Rooms = _context.Rooms.Where(r => r.Building.Company.UserId == currentUserId).ToList();
 
         return View(shelf);
     }
