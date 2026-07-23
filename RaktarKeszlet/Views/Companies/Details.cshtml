@@ -1,30 +1,44 @@
-@model RaktarKeszlet.Models.Company
-
+@model RaktarKeszlet.ViewModels.CompanyDetailsViewModel
 @{
     ViewData["Title"] = "Cég részletei";
 }
 
-<h1>Cég részletei</h1>
+<h1>@Model.Company.Name adatai</h1>
 <hr />
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card shadow border-0">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="bi bi-building"></i> Alapadatok</h5>
-            </div>
-            <div class="card-body bg-light">
-                <dl class="row mb-0">
-                    <dt class="col-sm-4 text-muted">Azonosító (Név)</dt>
-                    <dd class="col-sm-8 fw-bold fs-4">@Model.Name</dd>
-
-                    <!-- Késõbb ide be lehet kötni egy listát, hogy mennyi épület tartozik ehhez a céghez -->
-                </dl>
-            </div>
-            <div class="card-footer bg-white border-top-0 pt-3 pb-3">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Szerkesztés</a>
-                <a asp-action="Index" class="btn btn-secondary ms-2">Vissza a listához</a>
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card bg-primary text-white shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-white-50">Nyilvántartott Épületek</h6>
+                <h2 class="mb-0"><i class="bi bi-building"></i> @Model.TotalBuildingsCount db</h2>
             </div>
         </div>
     </div>
+    <div class="col-md-4 mb-3">
+        <div class="card bg-info text-dark shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-dark-50">Cég Teljes Készlete</h6>
+                <h2 class="mb-0">@Model.TotalProductsCount db termék</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card bg-success text-white shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-white-50">Készlet Összértéke</h6>
+                <h2 class="mb-0">@Model.TotalProductsValue.ToString("N0") Ft</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4 class="mb-3 text-secondary"><i class="bi bi-buildings"></i> A céghez tartozó épületek</h4>
+
+<!-- Ezt a Partial View-t már korábban létrehoztuk! -->
+<partial name="_BuildingListTable" model="Model.PagedBuildings" />
+<partial name="_Pagination" model="(Model.CurrentPage, Model.TotalPages)" />
+
+<div class="mt-4 border-top pt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary">Vissza a listához</a>
 </div>

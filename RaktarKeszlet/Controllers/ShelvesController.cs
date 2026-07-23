@@ -7,6 +7,7 @@ using RaktarKeszlet.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using RaktarKeszlet.ViewModels;
 
 [Authorize]
 public class ShelvesController : Controller
@@ -31,22 +32,53 @@ public class ShelvesController : Controller
         return View(await myShelves.ToListAsync());
     }
 
-    // GET: SHELFS/Details/5
-    public async Task<IActionResult> Details(int? id)
+    // GET: Shelves/Details/5
+    public async Task<IActionResult> Details(int? id, int page = 1)
     {
-        if (id == null)
-        {
-            return NotFound();
-        }
+        if (id == null) return NotFound();
 
-        var shelf = await _context.Shelves.Include(s => s.Room)
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (shelf == null)
-        {
-            return NotFound();
-        }
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        return View(shelf);
+        // 1. Lekérjük a Polcot, biztonsági szûréssel (csak a saját cégünkön belül)
+        var shelf = await _context.Shelves
+            .Include(s => s.Room)
+                .ThenInclude(r => r.Building)
+            .FirstOrDefaultAsync(m => m.Id == id && m.Room.Building.Company.UserId == currentUserId);
+
+        if (shelf == null) return NotFound();
+
+        // 2. Aggregátumok kiszámítása: Az ezen a polcon lévõ összes termékre 
+        // (Mindegy, hogy dobozban van, vagy csak úgy magában a polcon, a terméknél a ShelfId jelöli ezt)
+        var productsOnShelfQuery = _context.Products.Where(p => p.ShelfId == id);
+        int totalProducts = await productsOnShelfQuery.CountAsync();
+        decimal totalValue = totalProducts > 0 ? await productsOnShelfQuery.SumAsync(p => p.Price) : 0;
+
+        // 3. Lapozás elõkészítése a Tárolóeszközökhöz
+        var containersQuery = _context.StorageContainers.Where(c => c.ShelfId == id);
+        int totalContainers = await containersQuery.CountAsync();
+
+        int pageSize = 10;
+        int totalPages = (int)Math.Ceiling(totalContainers / (double)pageSize);
+
+        var pagedContainers = await containersQuery
+            .OrderBy(c => c.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        // 4. ViewModel összeállítása
+        var vm = new ShelfDetailsViewModel
+        {
+            Shelf = shelf,
+            PagedContainers = pagedContainers,
+            TotalContainersCount = totalContainers,
+            TotalProductsCount = totalProducts,
+            TotalProductsValue = totalValue,
+            CurrentPage = page,
+            TotalPages = totalPages
+        };
+
+        return View(vm);
     }
 
     // GET: Shelves/Create

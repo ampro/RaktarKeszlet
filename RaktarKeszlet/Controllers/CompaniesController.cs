@@ -30,23 +30,44 @@ public class CompaniesController : Controller
 
         return View(myCompanies);
     }
-    // GET: Companies/Details/5
-    public async Task<IActionResult> Details(int? id)
+    public async Task<IActionResult> Details(int? id, int page = 1)
     {
         if (id == null) return NotFound();
-        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var company = await _context.Companies
-            .Include(c => c.Products)
-            .FirstOrDefaultAsync(m => m.Id == id && m.UserId == currentUserId);
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var company = await _context.Companies.FirstOrDefaultAsync(m => m.Id == id && m.UserId == currentUserId);
 
         if (company == null) return NotFound();
 
-        // Biztonsági ellenõrzés: csak a sajátját nézheti meg
-        if (company.UserId != User.FindFirstValue(ClaimTypes.NameIdentifier))
-            return Forbid();
+        // 1. Céghez közvetlenül regisztrált készlet statisztikája (pl. jármûvek az udvaron)
+        var productsInCompany = _context.Products.Where(p => p.CompanyId == id);
+        int totalProducts = await productsInCompany.CountAsync();
+        decimal totalValue = totalProducts > 0 ? await productsInCompany.SumAsync(p => p.Price) : 0;
 
-        return View(company);
+        // 2. Épületek lapozása
+        var buildingsQuery = _context.Buildings.Where(b => b.CompanyId == id);
+        int totalBuildings = await buildingsQuery.CountAsync();
+        int pageSize = 10;
+        int totalPages = (int)Math.Ceiling(totalBuildings / (double)pageSize);
+
+        var pagedBuildings = await buildingsQuery
+            .OrderBy(b => b.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var vm = new RaktarKeszlet.ViewModels.CompanyDetailsViewModel
+        {
+            Company = company,
+            PagedBuildings = pagedBuildings,
+            TotalBuildingsCount = totalBuildings,
+            TotalProductsCount = totalProducts,
+            TotalProductsValue = totalValue,
+            CurrentPage = page,
+            TotalPages = totalPages
+        };
+
+        return View(vm);
     }
 
     // GET: Companies/Create

@@ -1,41 +1,68 @@
-@model RaktarKeszlet.Models.Shelf
-
+@model RaktarKeszlet.ViewModels.ShelfDetailsViewModel
 @{
-    ViewData["Title"] = "Polc részletei";
+    ViewData["Title"] = "Polc / Sor részletei";
 }
 
-<h1>Polc (vagy Sor) részletei</h1>
+<h1>@Model.Shelf.Identifier adatai</h1>
+<p class="text-muted">
+    Helyiség: <strong>@(Model.Shelf.Room?.Name ?? "-")</strong>
+    (Épület: @(Model.Shelf.Room?.Building?.Name ?? "-"))
+</p>
 <hr />
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="bi bi-bookshelf"></i> Alapadatok</h5>
-            </div>
-            <div class="card-body bg-light">
-                <dl class="row mb-0">
-                    <!-- Itt már az Identifier mezõre hivatkozunk! -->
-                    <dt class="col-sm-5 text-muted">Azonosító</dt>
-                    <dd class="col-sm-7 fw-bold fs-4">@Model.Identifier</dd>
-
-                    <dt class="col-sm-5 text-muted mt-3">Melyik helyiségben található?</dt>
-                    <dd class="col-sm-7 mt-3">
-                        @if (Model.Room != null)
-                        {
-                            <span class="badge bg-success fs-6">@Model.Room.Name</span>
-                        }
-                        else
-                        {
-                            <span class="text-danger">Nincs helyiséghez rendelve</span>
-                        }
-                    </dd>
-                </dl>
-            </div>
-            <div class="card-footer bg-white border-top-0 pt-3 pb-3">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Szerkesztés</a>
-                <a asp-action="Index" class="btn btn-secondary ms-2">Vissza a listához</a>
+<!-- AGGREGÁTUMOK AZ OLDAL TETEJEÉN -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card bg-primary text-white shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-white-50">Nyilvántartott tárolók</h6>
+                <h2 class="mb-0"><i class="bi bi-boxes"></i> @Model.TotalContainersCount db</h2>
             </div>
         </div>
     </div>
+    <div class="col-md-4 mb-3">
+        <div class="card bg-info text-dark shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-dark-50">Polc Készlete</h6>
+                <h2 class="mb-0">@Model.TotalProductsCount db termék</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card bg-success text-white shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-white-50">Készlet Értéke</h6>
+                <h2 class="mb-0">@Model.TotalProductsValue.ToString("N0") Ft</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4 class="mb-3 text-secondary"><i class="bi bi-box"></i> A polcon elhelyezett tárolóeszközök</h4>
+
+<!-- RÉSZNÉZET BEHÍVÁSA: Tárolóeszközök táblázata -->
+<partial name="_StorageContainerListTable" model="Model.PagedContainers" />
+
+<!-- RÉSZNÉZET BEHÍVÁSA: Lapozó -->
+<partial name="_Pagination" model="(Model.CurrentPage, Model.TotalPages)" />
+
+<div class="mt-4 border-top pt-4">
+    <!-- EZ AZ ÚJ GOMB -->
+    <a asp-controller="Products" asp-action="Create"
+       asp-route-shelfId="@Model.Shelf.Id"
+       asp-route-roomId="@Model.Shelf.RoomId"
+       asp-route-buildingId="@Model.Shelf.Room?.BuildingId"
+       asp-route-companyId="@Model.Shelf.Room?.Building?.CompanyId"
+       class="btn btn-success shadow-sm me-2">
+        <i class="bi bi-plus-circle"></i> Új termék elhelyezése ezen a polcon
+    </a>
+
+    <!-- Korábbi vissza gombok... -->
+</div>
+
+
+
+<div class="mt-4 border-top pt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary">Vissza a polcok listájához</a>
+    <a asp-controller="Rooms" asp-action="Details" asp-route-id="@Model.Shelf.RoomId" class="btn btn-outline-primary ms-2">Vissza a helyiséghez</a>
 </div>

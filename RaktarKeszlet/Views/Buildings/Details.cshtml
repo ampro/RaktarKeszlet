@@ -1,45 +1,45 @@
-@model RaktarKeszlet.Models.Building
-
+@model RaktarKeszlet.ViewModels.BuildingDetailsViewModel
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Épület részletei";
 }
 
-<h1>Details</h1>
+<h1>@Model.Building.Name adatai</h1>
+<p class="text-muted">Cég / Tulajdonos: <strong>@(Model.Building.Company?.Name ?? "-")</strong></p>
+<hr />
 
-<div>
-    <h4>Building</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CompanyId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CompanyId)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Company)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Company)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Rooms)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Rooms)
-        </dd>
-    </dl>
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card bg-primary text-white shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-white-50">Nyilvántartott Helyiségek</h6>
+                <h2 class="mb-0"><i class="bi bi-door-open"></i> @Model.TotalRoomsCount db</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card bg-info text-dark shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-dark-50">Közvetlen Készlet</h6>
+                <h2 class="mb-0">@Model.TotalProductsCount db termék</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card bg-success text-white shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-white-50">Közvetlen Érték</h6>
+                <h2 class="mb-0">@Model.TotalProductsValue.ToString("N0") Ft</h2>
+            </div>
+        </div>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<h4 class="mb-3 text-secondary"><i class="bi bi-diagram-3"></i> Az épületben található helyiségek</h4>
+
+<partial name="_RoomListTable" model="Model.PagedRooms" />
+<partial name="_Pagination" model="(Model.CurrentPage, Model.TotalPages)" />
+
+<div class="mt-4 border-top pt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary">Vissza a listához</a>
+    <a asp-controller="Companies" asp-action="Details" asp-route-id="@Model.Building.CompanyId" class="btn btn-outline-primary ms-2">Vissza a céghez</a>
 </div>

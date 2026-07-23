@@ -43,11 +43,28 @@
 
             <div class="mb-3">
                 <label asp-for="CategoryId" class="form-label fw-bold">Kategória</label>
-                <select asp-for="CategoryId" class="form-select" asp-items="Model.Categories">
-                    <option value="">-- Válassz kategóriát! --</option>
+                <select asp-for="CategoryId" id="selCategory" class="form-select border-info" onchange="toggleNew('selCategory', 'NewCategoryName')">
+                    <option value="">-- Válassz kategóriát --</option>
+                    @if (Model.Categories != null)
+                    {
+                        foreach (var item in Model.Categories)
+                        {
+                            if (Model.CategoryId.ToString() == item.Value)
+                            {
+                                <option value="@item.Value" selected>@item.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    }
+                    <option value="-1" class="text-success fw-bold">➕ Új kategória rögzítése...</option>
                 </select>
+                <!-- Ez a rejtett mező jelenik meg, ha az "Új kategória" opciót választják -->
+                <input asp-for="NewCategoryName" id="NewCategoryName" class="form-control mt-2 d-none border-success" placeholder="Pl. könyv, szerszám, alkatrész..." />
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
-
             <div class="mb-4">
                 <label asp-for="Photo" class="form-label fw-bold">Fénykép feltöltése</label>
                 <input asp-for="Photo" type="file" class="form-control" accept="image/*" />
@@ -64,16 +81,22 @@
 
             <!-- CÉG -->
             <div class="mb-3">
-                <label asp-for="CompanyId" class="form-label fw-bold">Cég / Tulajdonos *</label>
-                <select asp-for="CompanyId" class="form-select border-primary" id="selCompany" onchange="toggleNew('selCompany', 'NewCompanyName')">
-                    <option value="">-- Válassz céget! --</option>
-                    @foreach (var c in ViewBag.CompanyId.Items)
+                <label asp-for="CompanyId" class="form-label fw-bold">Cég / Tulajdonos</label>
+                <select asp-for="CompanyId" id="selCompany" class="form-select border-info">
+                    <option value="">-- Válassz céget --</option>
+                    @foreach (var c in ViewBag.Companies as List<RaktarKeszlet.Models.Company> ?? new List<RaktarKeszlet.Models.Company>())
                     {
-                        <option value="@c.Id">@c.Name</option>
+                        if (Model.CompanyId == c.Id)
+                        {
+                            <option value="@c.Id" selected>@c.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@c.Id">@c.Name</option>
+                        }
                     }
-                    <option value="-1" class="text-success fw-bold">➕ Új cég rögzítése...</option>
                 </select>
-                <input asp-for="NewCompanyName" id="NewCompanyName" class="form-control mt-2 d-none border-success" placeholder="Írd be az új cég nevét..." />
+                <span asp-validation-for="CompanyId" class="text-danger"></span>
             </div>
 
             <!-- ÉPÜLET -->
@@ -125,7 +148,8 @@
                     <option value="">-- Nem adom meg --</option>
                     @foreach (var c in ViewBag.Containers as List<StorageContainer> ?? new List<StorageContainer>())
                     {
-                        <option value="@c.Id" data-parent="@c.ShelfId">@c.Name (@c.Type)</option>
+                        <!-- AZ ÚJÍTÁS ITT VAN: Bekerült a data-company attribútum is! -->
+                        <option value="@c.Id" data-parent="@c.ShelfId" data-company="@c.CompanyId">@c.Name (@c.Type)</option>
                     }
                     <option value="-1" class="text-success fw-bold">➕ Új tároló rögzítése...</option>
                 </select>
@@ -139,44 +163,112 @@
     </div>
 </form>
 @section Scripts {
-            <script>
-                // Megjeleníti vagy elrejti a szöveges beviteli mezőt
-                function toggleNew(selectId, inputId) {
-                    var select = document.getElementById(selectId);
-                    var input = document.getElementById(inputId);
-                    if (select.value === "-1") {
-                        input.classList.remove('d-none');
-                        input.required = true; // Ha újat kért, kötelező beírni a nevet
-                    } else {
-                        input.classList.add('d-none');
-                        input.required = false;
-                        input.value = "";
-                    }
-                }
+    <script>
+        function toggleNew(selectId, inputId) {
+            var select = document.getElementById(selectId);
+            var input = document.getElementById(inputId);
+            if (select && select.value === "-1") {
+                input.classList.remove('d-none');
+                input.required = true;
+            } else if (input) {
+                input.classList.add('d-none');
+                input.required = false;
+                input.value = "";
+            }
+        }
 
-                // A láncolt szűrés módosítva, hogy a "-1" (Új hozzáadása) opció mindig látszódjon
-                function filterSelect(sourceId, targetId) {
-                    var sourceVal = document.getElementById(sourceId).value;
-                    var targetSelect = document.getElementById(targetId);
+        var originalOptions = {};
 
-                    targetSelect.value = "";
-                    toggleNew(targetId, 'New' + targetId.replace('sel', '') + 'Name'); // Ha van cél mező neve
+        // A mély-szűrő algoritmus
+        function applyDeepFilter() {
+            var compVal = document.getElementById('selCompany').value;
+            var bldgVal = document.getElementById('selBuilding').value;
+            var roomVal = document.getElementById('selRoom').value;
+            var shelfVal = document.getElementById('selShelf').value;
 
-                    Array.from(targetSelect.options).forEach(function(opt) {
-                        if (opt.value === "" || opt.value === "-1") {
-                            opt.style.display = ""; // Az üres és az "Új" mindig látszik
-                        } else if (sourceVal !== "-1" && opt.getAttribute("data-parent") === sourceVal && sourceVal !== "") {
-                            opt.style.display = ""; // Ha a szülő létezik és megegyezik
-                        } else {
-                            opt.style.display = "none"; // Egyébként elrejtjük (pl. ha a szülő egy "Új" -1 elem)
+            // Belső függvény egy adott szint szűrésére
+            function filterLevel(targetId, validParentIds, parentVal, checkCompany = false) {
+                var targetSelect = document.getElementById(targetId);
+                if (!targetSelect) return null;
+
+                var prevValue = targetSelect.value;
+                targetSelect.innerHTML = "";
+                var nextValidIds = [];
+
+                originalOptions[targetId].forEach(function(opt) {
+                    var parentId = opt.getAttribute("data-parent") || "";
+                    var companyId = opt.getAttribute("data-company") || "";
+
+                    var isValid = false;
+                    if (opt.value === "" || opt.value === "-1") {
+                        isValid = true; // Üres és "Új" opció mindig látszik
+                    } else if (parentVal !== "" && parentVal !== "-1") {
+                        isValid = (parentId === parentVal); // Ha a közvetlen szülő ki van választva
+                    } else if (validParentIds !== null) {
+                        isValid = validParentIds.includes(parentId); // Ha nincs kiválasztva, de a felette lévő szintek szűrve vannak
+
+                        // Extrém eset: Tároló, ami nincs konkrét polcon, de a kiválasztott cég udvarán van
+                        if (!isValid && checkCompany && compVal !== "" && compVal !== "-1") {
+                            if (companyId === compVal && parentId === "") isValid = true;
                         }
-                    });
-                    targetSelect.dispatchEvent(new Event('change'));
-                }
+                    } else {
+                        isValid = true; // Semmi sincs szűrve (a legfelső szint is üres)
+                    }
 
-                document.getElementById('selCompany').addEventListener('change', function() { filterSelect('selCompany', 'selBuilding'); });
-                document.getElementById('selBuilding').addEventListener('change', function() { filterSelect('selBuilding', 'selRoom'); });
-                document.getElementById('selRoom').addEventListener('change', function() { filterSelect('selRoom', 'selShelf'); });
-                document.getElementById('selShelf').addEventListener('change', function() { filterSelect('selShelf', 'selContainer'); });
-            </script>
+                    // Visszaépítjük a memóriából a DOM-ba
+                    if (isValid) {
+                        targetSelect.appendChild(opt.cloneNode(true));
+                        if (opt.value !== "" && opt.value !== "-1") {
+                            nextValidIds.push(opt.value);
+                        }
+                    }
+                });
+
+                // Visszaállítjuk a korábbi kiválasztást, ha a szűrés után is elérhető maradt
+                var stillExists = Array.from(targetSelect.options).some(o => o.value === prevValue);
+                targetSelect.value = stillExists ? prevValue : "";
+                toggleNew(targetId, 'New' + targetId.replace('sel', '') + 'Name');
+
+                // Továbbadjuk az érvényes ID-kat a következő szintnek
+                if (parentVal !== "" && parentVal !== "-1") {
+                    return nextValidIds;
+                } else if (validParentIds === null) {
+                    return null;
+                } else {
+                    return nextValidIds;
+                }
+            }
+
+            // --- A LÁNCFOLYAMAT (Fentről lefelé) ---
+            // 1. Épületek szűrése a Cég alapján
+            var validBldgs = filterLevel('selBuilding', null, compVal);
+
+            // 2. Helyiségek szűrése az Épületek alapján
+            var validRooms = filterLevel('selRoom', validBldgs, bldgVal);
+
+            // 3. Polcok szűrése a Helyiségek alapján
+            var validShelves = filterLevel('selShelf', validRooms, roomVal);
+
+            // 4. Dobozok szűrése a Polcok (és a Cég) alapján
+            filterLevel('selContainer', validShelves, shelfVal, true);
+        }
+
+        // Az oldal betöltésekor végrehajtandó műveletek
+        window.addEventListener('load', function() {
+            // Memóriába másoljuk az összes eredeti elemet
+            ['selBuilding', 'selRoom', 'selShelf', 'selContainer'].forEach(function(id) {
+                var sel = document.getElementById(id);
+                if (sel) originalOptions[id] = Array.from(sel.options).map(opt => opt.cloneNode(true));
+            });
+
+            // Eseménykezelők bekötése MINDEN legördülőre
+            document.getElementById('selCompany').addEventListener('change', applyDeepFilter);
+            document.getElementById('selBuilding').addEventListener('change', applyDeepFilter);
+            document.getElementById('selRoom').addEventListener('change', applyDeepFilter);
+            document.getElementById('selShelf').addEventListener('change', applyDeepFilter);
+
+            // Kezdeti szűrés lefuttatása, hogy rögtön tiszta legyen a felület
+            applyDeepFilter();
+        });
+    </script>
 }

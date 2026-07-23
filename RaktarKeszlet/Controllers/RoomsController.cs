@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using RaktarKeszlet.Data;
 using RaktarKeszlet.Models;
-using Microsoft.EntityFrameworkCore;
+using RaktarKeszlet.ViewModels;
+using System.Security.Claims;
 
 public class RoomsController : Controller
 {
@@ -25,24 +27,52 @@ public class RoomsController : Controller
     }
 
     // GET: Rooms/Details/5
-    public async Task<IActionResult> Details(int? id)
+    public async Task<IActionResult> Details(int? id, int page = 1)
     {
-        if (id == null)
-        {
-            return NotFound();
-        }
+        if (id == null) return NotFound();
 
-        // Itt is hozzá kell csatolni az Include-dal az épületet (és akár a polcokat is, ha látni szeretnéd õket a részleteknél)
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // 1. Lekérjük a Helyiséget (Biztonsági ellenõrzéssel a Céghez)
         var room = await _context.Rooms
             .Include(r => r.Building)
-            .FirstOrDefaultAsync(m => m.Id == id);
+            .FirstOrDefaultAsync(m => m.Id == id && m.Building.Company.UserId == currentUserId);
 
-        if (room == null)
+        if (room == null) return NotFound();
+
+        // 2. Aggregátumok kiszámítása SQL szinten a HELYISÉGBEN lévõ összes termékre
+        // Mivel a termékek felvitelénél a RoomId közvetlenül is rögzítésre kerül (függetlenül attól, 
+        // hogy van-e polcon), ezt nagyon egyszerûen le tudjuk kérdezni.
+        var productsInRoomQuery = _context.Products.Where(p => p.RoomId == id);
+        int totalProducts = await productsInRoomQuery.CountAsync();
+        decimal totalValue = totalProducts > 0 ? await productsInRoomQuery.SumAsync(p => p.Price) : 0;
+
+        // 3. Lapozás elõkészítése a Polcokhoz
+        var shelvesQuery = _context.Shelves.Where(s => s.RoomId == id);
+        int totalShelves = await shelvesQuery.CountAsync();
+
+        int pageSize = 10;
+        int totalPages = (int)Math.Ceiling(totalShelves / (double)pageSize);
+
+        var pagedShelves = await shelvesQuery
+            .OrderBy(s => s.Identifier)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        // 4. ViewModel összeállítása
+        var vm = new RoomDetailsViewModel
         {
-            return NotFound();
-        }
+            Room = room,
+            PagedShelves = pagedShelves,
+            TotalShelvesCount = totalShelves,
+            TotalProductsCount = totalProducts,
+            TotalProductsValue = totalValue,
+            CurrentPage = page,
+            TotalPages = totalPages
+        };
 
-        return View(room);
+        return View(vm);
     }
     // GET: ROOMS/Create
     public IActionResult Create()

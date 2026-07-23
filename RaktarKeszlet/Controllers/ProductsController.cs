@@ -123,26 +123,44 @@ public class ProductsController : Controller
         return View(product);
     }
 
-    // GET: PRODUCTS/Create
-    public IActionResult Create()
+    // GET: Products/Create
+    // ÚJÍTÁS: Paraméterként várjuk a helyszín azonosítóit, ha "virtuálisan belépve" érkezik a felhasználó
+    public async Task<IActionResult> Create(int? companyId, int? buildingId, int? roomId, int? shelfId, int? storageContainerId)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var vm = new ProductCreateViewModel();
 
-        // Kategóriák betöltése a ViewModelbe
-        // (Feltételezem, hogy létrehoztad a _context.Categories DbSet-et a Data mappában)
-        vm.Categories = new SelectList(_context.Categories, "Id", "Name");
+        var categories = await _context.Categories.ToListAsync();
+        var companies = await _context.Companies.Where(c => c.UserId == currentUserId).ToListAsync();
+        var buildings = await _context.Buildings.Where(b => b.Company.UserId == currentUserId).ToListAsync();
+        var rooms = await _context.Rooms.Where(r => r.Building.Company.UserId == currentUserId).ToListAsync();
+        var shelves = await _context.Shelves.Where(s => s.Room.Building.Company.UserId == currentUserId).ToListAsync();
+        var containers = await _context.StorageContainers.Where(c => c.Shelf.Room.Building.Company.UserId == currentUserId).ToListAsync();
 
-        // --- HIERARCHIA BETÖLTÉSE ---
-        var myCompanies = _context.Companies.Where(c => c.UserId == currentUserId).ToList();
-        ViewData["CompanyId"] = new SelectList(myCompanies, "Id", "Name");
+        // SEGÉDFÜGGVÉNY: Sütik biztonságos kiolvasása
+        int? GetCookieVal(string key) => Request.Cookies.ContainsKey(key) && int.TryParse(Request.Cookies[key], out int val) ? val : null;
 
-        ViewBag.Buildings = _context.Buildings.Where(b => b.Company.UserId == currentUserId).ToList();
-        ViewBag.Rooms = _context.Rooms.Where(r => r.Building.Company.UserId == currentUserId).ToList();
-        ViewBag.Shelves = _context.Shelves.Where(s => s.Room.Building.Company.UserId == currentUserId).ToList();
+        // OKOS INICIALIZÁLÁS
+        var vm = new ProductCreateViewModel
+        {
+            // Logika: 
+            // 1. URL paraméter (ha "fúrásból" érkezel) 
+            // 2. Süti (az utolsó mentett érték) 
+            // 3. Null/0 (ha még sosem csináltál semmit)
+            CompanyId = companyId ?? GetCookieVal("LastCompanyId") ?? 0,
+            CategoryId = GetCookieVal("LastCategoryId") ?? 0, // A Kategóriát is megjegyzi!
+            BuildingId = buildingId ?? GetCookieVal("LastBuildingId"),
+            RoomId = roomId ?? GetCookieVal("LastRoomId"),
+            ShelfId = shelfId ?? GetCookieVal("LastShelfId"),
+            StorageContainerId = storageContainerId ?? GetCookieVal("LastContainerId"),
 
-        // A tárolóeszközöket kézzel adjuk át, hogy a HTML data-parent attribútumokat generálhassunk a JS szûréshez
-        ViewBag.Containers = _context.StorageContainers.Where(s => s.Company.UserId == currentUserId).ToList();
+            Categories = new SelectList(categories, "Id", "Name")
+        };
+
+        ViewBag.Companies = companies;
+        ViewBag.Buildings = buildings;
+        ViewBag.Rooms = rooms;
+        ViewBag.Shelves = shelves;
+        ViewBag.Containers = containers;
 
         return View(vm);
     }
@@ -170,7 +188,17 @@ public class ProductsController : Controller
                 await _context.SaveChangesAsync();
                 vm.CompanyId = newCompany.Id; // Az új ID-t átadjuk a ViewModelnek
             }
+            // --- 0. ÚJ KATEGÓRIA LÉTREHOZÁSA ---
+            if (vm.CategoryId == -1 && !string.IsNullOrWhiteSpace(vm.NewCategoryName))
+            {
+                var newCategory = new Category { Name = vm.NewCategoryName };
+                _context.Categories.Add(newCategory);
+                await _context.SaveChangesAsync();
 
+                // Az újonnan létrejött kategória azonosítóját átadjuk a ViewModelnek, 
+                // így a termék már ehhez fog kapcsolódni a mentéskor!
+                vm.CategoryId = newCategory.Id;
+            }
             if (vm.BuildingId == -1 && !string.IsNullOrWhiteSpace(vm.NewBuildingName) && vm.CompanyId > 0)
             {
                 var newBuilding = new Building { Name = vm.NewBuildingName, CompanyId = vm.CompanyId };
@@ -254,6 +282,24 @@ public class ProductsController : Controller
 
             _context.Add(product);
             await _context.SaveChangesAsync();
+            // --- AZ UTOLSÓ KIVÁLASZTÁS MENTÉSE SÜTIBE (Pl. 30 napig érvényes) ---
+            var cookieOptions = new CookieOptions { Expires = DateTime.Now.AddDays(30) };
+
+            Response.Cookies.Append("LastCompanyId", vm.CompanyId.ToString(), cookieOptions);
+            Response.Cookies.Append("LastCategoryId", vm.CategoryId.ToString(), cookieOptions);
+
+            if (vm.BuildingId.HasValue) Response.Cookies.Append("LastBuildingId", vm.BuildingId.Value.ToString(), cookieOptions);
+            else Response.Cookies.Delete("LastBuildingId");
+
+            if (vm.RoomId.HasValue) Response.Cookies.Append("LastRoomId", vm.RoomId.Value.ToString(), cookieOptions);
+            else Response.Cookies.Delete("LastRoomId");
+
+            if (vm.ShelfId.HasValue) Response.Cookies.Append("LastShelfId", vm.ShelfId.Value.ToString(), cookieOptions);
+            else Response.Cookies.Delete("LastShelfId");
+
+            if (vm.StorageContainerId.HasValue) Response.Cookies.Append("LastContainerId", vm.StorageContainerId.Value.ToString(), cookieOptions);
+            else Response.Cookies.Delete("LastContainerId");
+            // ------------------------------------------------------------------
             return RedirectToAction(nameof(Index)); // Mentés után vissza a listához
         }
 

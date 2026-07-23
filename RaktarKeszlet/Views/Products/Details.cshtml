@@ -13,13 +13,14 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-tag-fill"></i> @Model.Name</h5>
-                <span class="badge bg-success fs-6">@Model.Price.ToString("N0") Ft</span>
+                <!-- Ár a fejlécben is kiemelve -->
+                <span class="badge bg-success fs-5">@Model.Price.ToString("N0") Ft</span>
             </div>
 
             <div class="card-body bg-light row">
                 <!-- BAL OSZLOP: Kép és Alapadatok -->
                 <div class="col-md-6 border-end">
-                    <div class="text-center mb-3">
+                    <div class="text-center mb-4">
                         @if (!string.IsNullOrEmpty(Model.PhotoUrl))
                         {
                             <img src="@Model.PhotoUrl" alt="@Model.Name" class="img-fluid rounded shadow-sm" style="max-height: 250px; object-fit: cover;" />
@@ -34,6 +35,10 @@
                     </div>
 
                     <dl class="row mb-0">
+                        <!-- ÚJ: Az ár kiemelten a termék adatai között -->
+                        <dt class="col-sm-5 text-muted">Ár</dt>
+                        <dd class="col-sm-7 fw-bold text-success fs-5">@Model.Price.ToString("N0") Ft</dd>
+
                         <dt class="col-sm-5 text-muted">Kategória</dt>
                         <dd class="col-sm-7 fw-bold">@(Model.Category?.Name ?? "Nincs besorolva")</dd>
 
@@ -49,27 +54,76 @@
                 <div class="col-md-6 ps-4">
                     <h6 class="text-primary fw-bold border-bottom pb-2 mb-3"><i class="bi bi-geo-alt"></i> Tárolási hely</h6>
                     <dl class="row mb-0">
+
                         <dt class="col-sm-5 text-muted">Cég / Tulaj.</dt>
-                        <dd class="col-sm-7 fw-bold">@(Model.Company?.Name ?? "-")</dd>
+                        <dd class="col-sm-7 fw-bold">
+                            @if (Model.Company != null)
+                            {
+                                <a asp-controller="Companies" asp-action="Details" asp-route-id="@Model.CompanyId" class="text-decoration-none text-primary">
+                                    <i class="bi bi-link-45deg"></i> @Model.Company.Name
+                                </a>
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </dd>
 
                         <dt class="col-sm-5 text-muted">Épület</dt>
-                        <dd class="col-sm-7">@(Model.Building?.Name ?? "Nincs megadva")</dd>
+                        <dd class="col-sm-7">
+                            @if (Model.Building != null)
+                            {
+                                <a asp-controller="Buildings" asp-action="Details" asp-route-id="@Model.BuildingId" class="text-decoration-none text-primary">
+                                    <i class="bi bi-link-45deg"></i> @Model.Building.Name
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Nincs megadva</span>
+                            }
+                        </dd>
 
                         <dt class="col-sm-5 text-muted">Helyiség</dt>
-                        <dd class="col-sm-7">@(Model.Room?.Name ?? "Nincs megadva")</dd>
+                        <dd class="col-sm-7">
+                            @if (Model.Room != null)
+                            {
+                                <a asp-controller="Rooms" asp-action="Details" asp-route-id="@Model.RoomId" class="text-decoration-none text-primary">
+                                    <i class="bi bi-link-45deg"></i> @Model.Room.Name
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Nincs megadva</span>
+                            }
+                        </dd>
 
                         <dt class="col-sm-5 text-muted">Polc/Sor</dt>
-                        <dd class="col-sm-7">@(Model.Shelf?.Identifier ?? "Nincs megadva")</dd>
+                        <dd class="col-sm-7">
+                            @if (Model.Shelf != null)
+                            {
+                                <a asp-controller="Shelves" asp-action="Details" asp-route-id="@Model.ShelfId" class="text-decoration-none text-primary">
+                                    <i class="bi bi-link-45deg"></i> @Model.Shelf.Identifier
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Nincs megadva</span>
+                            }
+                        </dd>
 
                         <dt class="col-sm-5 text-muted">Tárolóeszköz</dt>
                         <dd class="col-sm-7">
                             @if (Model.StorageContainer != null)
                             {
-                                <span class="badge bg-info text-dark">@Model.StorageContainer.Name (@Model.StorageContainer.Type)</span>
+                                <a asp-controller="StorageContainers" asp-action="Details" asp-route-id="@Model.StorageContainerId" class="text-decoration-none">
+                                    <span class="badge bg-info text-dark shadow-sm">
+                                        <i class="bi bi-box"></i> @Model.StorageContainer.Name (@Model.StorageContainer.Type)
+                                    </span>
+                                </a>
                             }
                             else
                             {
-                                <span>Nincs megadva</span>
+                                <span class="text-muted">Nincs megadva</span>
                             }
                         </dd>
                     </dl>

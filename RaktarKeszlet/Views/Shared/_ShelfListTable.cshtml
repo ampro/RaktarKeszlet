@@ -1,0 +1,28 @@
+﻿@model IEnumerable<RaktarKeszlet.Models.Shelf>
+
+<div class="table-responsive shadow-sm rounded border bg-white mb-3">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+            <tr>
+                <th>Polc / Sor azonosítója</th>
+                <th class="text-end">Műveletek</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="2" class="text-center py-3 text-muted">Nincsenek megjeleníthető polcok ebben a helyiségben.</td></tr>
+            }
+            @foreach (var item in Model)
+            {
+                <!-- Fúrás a Polc szintjére -->
+                <tr style="cursor: pointer;" onclick="window.location.href='/Shelves/Details/@item.Id'">
+                    <td class="fw-bold text-primary"><i class="bi bi-bookshelf"></i> @item.Identifier</td>
+                    <td class="text-end">
+                        <a asp-controller="Shelves" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Megnyitás</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

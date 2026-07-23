@@ -1,8 +1,99 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model RaktarKeszlet.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Főoldal - Készletjelentés";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center mb-5">
+    <h1 class="display-4 fw-bold text-primary">Raktár & Készletnyilvántartás</h1>
+    <p class="lead text-muted">Vezérlőpult és összesített készletérték jelentés</p>
 </div>
+
+@if (!User.Identity.IsAuthenticated)
+{
+    <div class="alert alert-warning text-center shadow-sm">
+        <h4>Kérlek, jelentkezz be a raktárad adatainak megtekintéséhez!</h4>
+        <p class="mb-0">Használhatod az e-mail címedet vagy a Google fiókodat is a belépéshez.</p>
+    </div>
+}
+else
+{
+    <!-- FŐ AGGREGÁTUMOK -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card bg-success text-white shadow h-100 border-0 rounded-3">
+                <div class="card-body text-center p-4">
+                    <h5 class="card-title text-uppercase text-white-50 fw-bold mb-3"><i class="bi bi-cash-stack"></i> Teljes Készletérték</h5>
+                    <h1 class="display-5 fw-bold mb-0">@Model.TotalValue.ToString("N0") Ft</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card bg-primary text-white shadow h-100 border-0 rounded-3">
+                <div class="card-body text-center p-4">
+                    <h5 class="card-title text-uppercase text-white-50 fw-bold mb-3"><i class="bi bi-boxes"></i> Összes Termék Száma</h5>
+                    <h1 class="display-5 fw-bold mb-0">@Model.TotalProducts db</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- KATEGÓRIÁNKÉNTI BONTÁS -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="bi bi-tags"></i> Érték Kategóriánként</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        @if (Model.ValueByCategory == null || !Model.ValueByCategory.Any())
+                        {
+                            <li class="list-group-item text-center text-muted p-4">Nincs még adat.</li>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model.ValueByCategory)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                    <span class="fw-bold">@item.Key</span>
+                                    <span class="badge bg-success rounded-pill fs-6">@item.Value.ToString("N0") Ft</span>
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- CÉGENKÉNTI BONTÁS -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="bi bi-buildings"></i> Érték Cégenként</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        @if (Model.ValueByCompany == null || !Model.ValueByCompany.Any())
+                        {
+                            <li class="list-group-item text-center text-muted p-4">Nincs még adat.</li>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model.ValueByCompany)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                    <span class="fw-bold">@item.Key</span>
+                                    <span class="badge bg-success rounded-pill fs-6">@item.Value.ToString("N0") Ft</span>
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="/Products" class="btn btn-lg btn-outline-primary shadow-sm"><i class="bi bi-search"></i> Ugrás a teljes terméklistához</a>
+    </div>
+}

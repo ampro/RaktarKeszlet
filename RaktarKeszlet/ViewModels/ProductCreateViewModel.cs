@@ -43,6 +43,7 @@ namespace RaktarKeszlet.ViewModels
         public string? NewRoomName { get; set; }
         public string? NewShelfIdentifier { get; set; }
         public string? NewContainerName { get; set; }
+        public string? NewCategoryName { get; set; }
 
     }
 }

@@ -1,41 +1,49 @@
-@model RaktarKeszlet.Models.StorageContainer
-
+@model RaktarKeszlet.ViewModels.StorageContainerDetailsViewModel
 @{
-    ViewData["Title"] = "Tárolóeszköz részletei";
+    ViewData["Title"] = "Tároló részletei";
 }
 
-<h1>Tárolóeszköz részletei</h1>
+<h1>@Model.Container.Name (@Model.Container.Type) részletei</h1>
 <hr />
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0">Alapadatok</h5>
-            </div>
-            <div class="card-body bg-light">
-                <dl class="row mb-0">
-                    <dt class="col-sm-5 text-muted">Azonosító (Név)</dt>
-                    <dd class="col-sm-7 fw-bold fs-5">@Model.Name</dd>
-
-                    <dt class="col-sm-5 text-muted mt-3">Melyik Polcon/Soron van?</dt>
-                    <dd class="col-sm-7 mt-3">
-                        @if (Model.Shelf != null)
-                        {
-                            <!-- IDE FIGYELJ: Ha nálad nem Name, hanem pl. ShelfNumber, akkor írd át! -->
-                            <span class="badge bg-info text-dark fs-6">@Model.Shelf.Identifier</span>
-                        }
-                        else
-                        {
-                            <span class="text-danger">Nincs polchoz rendelve</span>
-                        }
-                    </dd>
-                </dl>
-            </div>
-            <div class="card-footer bg-white border-top-0 pt-3 pb-3">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Szerkesztés</a>
-                <a asp-action="Index" class="btn btn-secondary ms-2">Vissza a listához</a>
+<!-- AGGREGÁTUMOK AZ OLDAL TETEJEÉN (Kártyák) -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-white-50">Összesített darabszám</h6>
+                <h2 class="mb-0">@Model.TotalProductsCount db termék</h2>
             </div>
         </div>
     </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-white-50">Összesített Érték</h6>
+                <h2 class="mb-0">@Model.TotalProductsValue.ToString("N0") Ft</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-light border shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-muted">Helyszín</h6>
+                <h5 class="mb-0 text-dark">
+                    Polc: @(Model.Container.Shelf?.Identifier ?? "Nincs polcon")
+                </h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4 class="mb-3 text-secondary"><i class="bi bi-box-seam"></i> A tárolóban található termékek</h4>
+
+<!-- RÉSZNÉZET BEHÍVÁSA: Termékek táblázata -->
+<partial name="_ProductListTable" model="Model.PagedProducts" />
+
+<!-- RÉSZNÉZET BEHÍVÁSA: Lapozó -->
+<partial name="_Pagination" model="(Model.CurrentPage, Model.TotalPages)" />
+
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary">Vissza a listához</a>
 </div>

@@ -1,0 +1,30 @@
+﻿@model IEnumerable<RaktarKeszlet.Models.Product>
+
+<div class="table-responsive shadow-sm rounded border bg-white mb-3">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+            <tr>
+                <th>Megnevezés</th>
+                <th>Kategória</th>
+                <th>Vonalkód</th>
+                <th class="text-end">Ár</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="4" class="text-center py-3 text-muted">Nincsenek megjeleníthető elemek.</td></tr>
+            }
+            @foreach (var item in Model)
+            {
+                <!-- A sorra kattintva (fúrás) bejutunk a termék részleteibe -->
+                <tr style="cursor: pointer;" onclick="window.location.href='/Products/Details/@item.Id'">
+                    <td class="fw-bold text-primary">@item.Name</td>
+                    <td>@(item.Category?.Name ?? "-")</td>
+                    <td>@(item.Barcode ?? "-")</td>
+                    <td class="text-end fw-bold text-success">@item.Price.ToString("N0") Ft</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

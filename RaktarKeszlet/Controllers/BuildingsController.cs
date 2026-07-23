@@ -6,6 +6,7 @@ using RaktarKeszlet.Data;
 using RaktarKeszlet.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using RaktarKeszlet.ViewModels;
 
 [Authorize]
 public class BuildingsController : Controller
@@ -25,22 +26,47 @@ public class BuildingsController : Controller
         return View(await applicationDbContext.ToListAsync());
     }
 
-    // GET: BUILDINGS/Details/5
-    public async Task<IActionResult> Details(int? id)
+    // GET: Buildings/Details/5
+    public async Task<IActionResult> Details(int? id, int page = 1)
     {
-        if (id == null)
-        {
-            return NotFound();
-        }
+        if (id == null) return NotFound();
 
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var building = await _context.Buildings
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (building == null)
-        {
-            return NotFound();
-        }
+            .Include(b => b.Company)
+            .FirstOrDefaultAsync(m => m.Id == id && m.Company.UserId == currentUserId);
 
-        return View(building);
+        if (building == null) return NotFound();
+
+        // 1. Épületbe közvetlenül regisztrált készlet statisztikája
+        var productsInBuilding = _context.Products.Where(p => p.BuildingId == id);
+        int totalProducts = await productsInBuilding.CountAsync();
+        decimal totalValue = totalProducts > 0 ? await productsInBuilding.SumAsync(p => p.Price) : 0;
+
+        // 2. Helyiségek lapozása
+        var roomsQuery = _context.Rooms.Where(r => r.BuildingId == id);
+        int totalRooms = await roomsQuery.CountAsync();
+        int pageSize = 10;
+        int totalPages = (int)Math.Ceiling(totalRooms / (double)pageSize);
+
+        var pagedRooms = await roomsQuery
+            .OrderBy(r => r.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var vm = new RaktarKeszlet.ViewModels.BuildingDetailsViewModel
+        {
+            Building = building,
+            PagedRooms = pagedRooms,
+            TotalRoomsCount = totalRooms,
+            TotalProductsCount = totalProducts,
+            TotalProductsValue = totalValue,
+            CurrentPage = page,
+            TotalPages = totalPages
+        };
+
+        return View(vm);
     }
 
     // GET: BUILDINGS/Create

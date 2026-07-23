@@ -34,22 +34,48 @@ public class StorageContainersController : Controller
     }
 
     // GET: STORAGECONTAINERS/Details/5
-    public async Task<IActionResult> Details(int? id)
+    // GET: StorageContainers/Details/5
+    public async Task<IActionResult> Details(int? id, int page = 1)
     {
-        if (id == null)
-        {
-            return NotFound();
-        }
+        if (id == null) return NotFound();
 
-        var storagecontainer = await _context.StorageContainers
+        var container = await _context.StorageContainers
             .Include(s => s.Shelf)
             .FirstOrDefaultAsync(m => m.Id == id);
-        if (storagecontainer == null)
-        {
-            return NotFound();
-        }
 
-        return View(storagecontainer);
+        if (container == null) return NotFound();
+
+        // 1. Lekérdezés elõkészítése (Még nem fut le az adatbázisban!)
+        var productsQuery = _context.Products
+            .Include(p => p.Category)
+            .Where(p => p.StorageContainerId == id);
+
+        // 2. Aggregátumok kiszámítása SQL szinten az oldal tetejére
+        int totalCount = await productsQuery.CountAsync();
+        decimal totalValue = totalCount > 0 ? await productsQuery.SumAsync(p => p.Price) : 0;
+
+        // 3. Lapozás végrehajtása
+        int pageSize = 10;
+        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var pagedProducts = await productsQuery
+            .OrderBy(p => p.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        // 4. ViewModel összeállítása
+        var vm = new RaktarKeszlet.ViewModels.StorageContainerDetailsViewModel
+        {
+            Container = container,
+            PagedProducts = pagedProducts,
+            TotalProductsCount = totalCount,
+            TotalProductsValue = totalValue,
+            CurrentPage = page,
+            TotalPages = totalPages
+        };
+
+        return View(vm);
     }
 
     // GET: STORAGECONTAINERS/Create
