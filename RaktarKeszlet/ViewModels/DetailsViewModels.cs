@@ -71,4 +71,11 @@ namespace RaktarKeszlet.ViewModels
         public int CurrentPage { get; set; }
         public int TotalPages { get; set; }
     }
+    // Termék (Product) részleteihez és mozgástörténetéhez
+    public class ProductDetailsViewModel
+    {
+        public Product Product { get; set; }
+        public IEnumerable<TransactionLog> TransactionLogs { get; set; }
+    }
+
 }

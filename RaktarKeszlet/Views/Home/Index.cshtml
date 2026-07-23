@@ -45,22 +45,23 @@ else
                     <h5 class="mb-0"><i class="bi bi-tags"></i> Érték Kategóriánként</h5>
                 </div>
                 <div class="card-body p-0">
-                    <ul class="list-group list-group-flush">
+                    <div class="list-group list-group-flush">
                         @if (Model.ValueByCategory == null || !Model.ValueByCategory.Any())
                         {
-                            <li class="list-group-item text-center text-muted p-4">Nincs még adat.</li>
+                            <div class="list-group-item text-center text-muted p-4">Nincs még adat.</div>
                         }
                         else
                         {
                             @foreach (var item in Model.ValueByCategory)
                             {
-                                <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                    <span class="fw-bold">@item.Key</span>
+                                <!-- KATTINTHATÓ LINK: Átirányít a Products/Index-re, átadva a szűrőt -->
+                                <a href="/Products/Index?categoryName=@Uri.EscapeDataString(item.Key)" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3 text-decoration-none">
+                                    <span class="fw-bold text-dark">@item.Key</span>
                                     <span class="badge bg-success rounded-pill fs-6">@item.Value.ToString("N0") Ft</span>
-                                </li>
+                                </a>
                             }
                         }
-                    </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -72,22 +73,23 @@ else
                     <h5 class="mb-0"><i class="bi bi-buildings"></i> Érték Cégenként</h5>
                 </div>
                 <div class="card-body p-0">
-                    <ul class="list-group list-group-flush">
+                    <div class="list-group list-group-flush">
                         @if (Model.ValueByCompany == null || !Model.ValueByCompany.Any())
                         {
-                            <li class="list-group-item text-center text-muted p-4">Nincs még adat.</li>
+                            <div class="list-group-item text-center text-muted p-4">Nincs még adat.</div>
                         }
                         else
                         {
                             @foreach (var item in Model.ValueByCompany)
                             {
-                                <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                    <span class="fw-bold">@item.Key</span>
-                                    <span class="badge bg-success rounded-pill fs-6">@item.Value.ToString("N0") Ft</span>
-                                </li>
+                                <!-- KATTINTHATÓ LINK: Közvetlenül a Cég Részletek (Details) oldalára ugrik -->
+                                <a href="/Companies/Details/@item.CompanyId" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3 text-decoration-none">
+                                    <span class="fw-bold text-dark">@item.CompanyName</span>
+                                    <span class="badge bg-success rounded-pill fs-6">@item.TotalValue.ToString("N0") Ft</span>
+                                </a>
                             }
                         }
-                    </ul>
+                    </div>
                 </div>
             </div>
         </div>

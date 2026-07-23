@@ -1,139 +1,138 @@
-﻿@model RaktarKeszlet.Models.Product
+﻿@model RaktarKeszlet.ViewModels.ProductDetailsViewModel
 
 @{
     ViewData["Title"] = "Termék részletei";
 }
 
-<h1>Termék részletei</h1>
-<p class="text-muted">Minden információ és tárolási adat a kiválasztott termékről.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="text-primary"><i class="bi bi-box-seam"></i> @Model.Product.Name</h1>
+    <span class="badge bg-success fs-4 shadow-sm">@Model.Product.Price.ToString("N0") Ft</span>
+</div>
 <hr />
 
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-tag-fill"></i> @Model.Name</h5>
-                <!-- Ár a fejlécben is kiemelve -->
-                <span class="badge bg-success fs-5">@Model.Price.ToString("N0") Ft</span>
+<div class="row mb-4">
+    <!-- BAL OSZLOP: Termék alapadatok -->
+    <div class="col-md-5 mb-3">
+        <div class="card shadow-sm border-info h-100">
+            <div class="card-header bg-info text-dark fw-bold">
+                <i class="bi bi-info-circle"></i> Termék adatai
             </div>
+            <div class="card-body bg-light">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Kategória</dt>
+                    <dd class="col-sm-7 fw-bold">@(Model.Product.Category?.Name ?? "Nincs besorolva")</dd>
 
-            <div class="card-body bg-light row">
-                <!-- BAL OSZLOP: Kép és Alapadatok -->
-                <div class="col-md-6 border-end">
-                    <div class="text-center mb-4">
-                        @if (!string.IsNullOrEmpty(Model.PhotoUrl))
-                        {
-                            <img src="@Model.PhotoUrl" alt="@Model.Name" class="img-fluid rounded shadow-sm" style="max-height: 250px; object-fit: cover;" />
-                        }
-                        else
-                        {
-                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded shadow-sm mx-auto" style="width: 200px; height: 200px;">
-                                <i class="bi bi-image text-white-50" style="font-size: 5rem;"></i>
-                            </div>
-                            <p class="text-muted mt-2 small">Nincs fotó feltöltve</p>
-                        }
-                    </div>
+                    <dt class="col-sm-5 text-muted mt-3">Vonalkód</dt>
+                    <dd class="col-sm-7 mt-3">@(Model.Product.Barcode ?? "-")</dd>
 
-                    <dl class="row mb-0">
-                        <!-- ÚJ: Az ár kiemelten a termék adatai között -->
-                        <dt class="col-sm-5 text-muted">Ár</dt>
-                        <dd class="col-sm-7 fw-bold text-success fs-5">@Model.Price.ToString("N0") Ft</dd>
-
-                        <dt class="col-sm-5 text-muted">Kategória</dt>
-                        <dd class="col-sm-7 fw-bold">@(Model.Category?.Name ?? "Nincs besorolva")</dd>
-
-                        <dt class="col-sm-5 text-muted">Vonalkód</dt>
-                        <dd class="col-sm-7">@(Model.Barcode ?? "-")</dd>
-
-                        <dt class="col-sm-5 text-muted">QR Kód (R)</dt>
-                        <dd class="col-sm-7">@(Model.RCode ?? "-")</dd>
-                    </dl>
-                </div>
-
-                <!-- JOBB OSZLOP: Tárolási hierarchia -->
-                <div class="col-md-6 ps-4">
-                    <h6 class="text-primary fw-bold border-bottom pb-2 mb-3"><i class="bi bi-geo-alt"></i> Tárolási hely</h6>
-                    <dl class="row mb-0">
-
-                        <dt class="col-sm-5 text-muted">Cég / Tulaj.</dt>
-                        <dd class="col-sm-7 fw-bold">
-                            @if (Model.Company != null)
-                            {
-                                <a asp-controller="Companies" asp-action="Details" asp-route-id="@Model.CompanyId" class="text-decoration-none text-primary">
-                                    <i class="bi bi-link-45deg"></i> @Model.Company.Name
-                                </a>
-                            }
-                            else
-                            {
-                                <span>-</span>
-                            }
-                        </dd>
-
-                        <dt class="col-sm-5 text-muted">Épület</dt>
-                        <dd class="col-sm-7">
-                            @if (Model.Building != null)
-                            {
-                                <a asp-controller="Buildings" asp-action="Details" asp-route-id="@Model.BuildingId" class="text-decoration-none text-primary">
-                                    <i class="bi bi-link-45deg"></i> @Model.Building.Name
-                                </a>
-                            }
-                            else
-                            {
-                                <span class="text-muted">Nincs megadva</span>
-                            }
-                        </dd>
-
-                        <dt class="col-sm-5 text-muted">Helyiség</dt>
-                        <dd class="col-sm-7">
-                            @if (Model.Room != null)
-                            {
-                                <a asp-controller="Rooms" asp-action="Details" asp-route-id="@Model.RoomId" class="text-decoration-none text-primary">
-                                    <i class="bi bi-link-45deg"></i> @Model.Room.Name
-                                </a>
-                            }
-                            else
-                            {
-                                <span class="text-muted">Nincs megadva</span>
-                            }
-                        </dd>
-
-                        <dt class="col-sm-5 text-muted">Polc/Sor</dt>
-                        <dd class="col-sm-7">
-                            @if (Model.Shelf != null)
-                            {
-                                <a asp-controller="Shelves" asp-action="Details" asp-route-id="@Model.ShelfId" class="text-decoration-none text-primary">
-                                    <i class="bi bi-link-45deg"></i> @Model.Shelf.Identifier
-                                </a>
-                            }
-                            else
-                            {
-                                <span class="text-muted">Nincs megadva</span>
-                            }
-                        </dd>
-
-                        <dt class="col-sm-5 text-muted">Tárolóeszköz</dt>
-                        <dd class="col-sm-7">
-                            @if (Model.StorageContainer != null)
-                            {
-                                <a asp-controller="StorageContainers" asp-action="Details" asp-route-id="@Model.StorageContainerId" class="text-decoration-none">
-                                    <span class="badge bg-info text-dark shadow-sm">
-                                        <i class="bi bi-box"></i> @Model.StorageContainer.Name (@Model.StorageContainer.Type)
-                                    </span>
-                                </a>
-                            }
-                            else
-                            {
-                                <span class="text-muted">Nincs megadva</span>
-                            }
-                        </dd>
-                    </dl>
-                </div>
-            </div>
-
-            <div class="card-footer bg-white border-top-0 pt-3 pb-3">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning"><i class="bi bi-pencil"></i> Szerkesztés</a>
-                <a asp-action="Index" class="btn btn-outline-secondary ms-2">Vissza a listához</a>
+                    <!-- Ha van fotó URL vagy R kód a modelledben, azokat is ide teheted -->
+                </dl>
             </div>
         </div>
     </div>
+
+    <!-- JOBB OSZLOP: Aktuális fizikai elhelyezkedés -->
+    <div class="col-md-7 mb-3">
+        <div class="card shadow-sm border-primary h-100">
+            <div class="card-header bg-primary text-white fw-bold">
+                <i class="bi bi-geo-alt-fill"></i> Jelenlegi elhelyezkedés
+            </div>
+            <div class="card-body bg-light">
+                <ul class="list-unstyled mb-0 fs-5">
+                    <li class="mb-2">
+                        <i class="bi bi-building text-primary"></i> <strong>Cég:</strong>
+                        @(Model.Product.Company?.Name ?? "-")
+                    </li>
+                    <li class="mb-2 ms-3">
+                        <i class="bi bi-house text-secondary"></i> <strong>Épület:</strong>
+                        @(Model.Product.Building?.Name ?? "Közvetlenül a cégnél/udvaron")
+                    </li>
+                    <li class="mb-2 ms-4">
+                        <i class="bi bi-door-open text-secondary"></i> <strong>Helyiség:</strong>
+                        @(Model.Product.Room?.Name ?? "-")
+                    </li>
+                    <li class="mb-2 ms-5">
+                        <i class="bi bi-bookshelf text-secondary"></i> <strong>Polc:</strong>
+                        @(Model.Product.Shelf?.Identifier ?? "-")
+                    </li>
+                    <li class="ms-5 ps-3 mt-3 pt-2 border-top">
+                        <i class="bi bi-box text-success"></i> <strong>Tárolóeszköz:</strong>
+                        <span class="badge bg-success fs-6">@(Model.Product.StorageContainer?.Name ?? "Szabadon tárolva")</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MOZGÁSTÖRTÉNET (TRANZAKCIÓS NAPLÓ) TÁBLÁZAT -->
+<h4 class="mt-5 mb-3 text-secondary border-bottom pb-2">
+    <i class="bi bi-clock-history"></i> A termék mozgástörténete (Tranzakciós napló)
+</h4>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Dátum</th>
+                        <th>Művelet</th>
+                        <th>Felhasználó</th>
+                        <th>Tároló változás (Honnan -> Hová)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.TransactionLogs == null || !Model.TransactionLogs.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted p-4">
+                                <i class="bi bi-info-circle"></i> Ehhez a termékhez még nem rögzítettek mozgást.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var log in Model.TransactionLogs)
+                        {
+                            <tr>
+                                <td class="fw-bold text-secondary">
+                                    @log.TransactionDate.ToString("yyyy. MM. dd. HH:mm")
+                                </td>
+                                <td>
+                                    <span class="badge bg-info text-dark shadow-sm">@log.ActionType</span>
+                                </td>
+                                <td>
+                                    <i class="bi bi-person"></i> @(log.User?.UserName ?? "Ismeretlen")
+                                </td>
+                                <td class="small">
+                                    @if (log.FromStorageContainerId == null && log.ToStorageContainerId == null)
+                                    {
+                                        <span class="text-muted">Nem történt tárolóváltás.</span>
+                                    }
+                                    else if (log.FromStorageContainerId == log.ToStorageContainerId)
+                                    {
+                                        <span class="text-secondary">
+                                            Együtt mozgott a(z) <strong>@(log.FromStorageContainer?.Name)</strong> tárolóval.
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">@(log.FromStorageContainer?.Name ?? "Szabadon")</span>
+                                        <i class="bi bi-arrow-right mx-1"></i>
+                                        <span class="text-success">@(log.ToStorageContainer?.Name ?? "Szabadon")</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 border-top pt-4">
+    <a asp-action="Edit" asp-route-id="@Model.Product.Id" class="btn btn-warning shadow-sm"><i class="bi bi-pencil"></i> Szerkesztés</a>
+    <a asp-action="Index" class="btn btn-outline-secondary ms-2">Vissza a listához</a>
 </div>

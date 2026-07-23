@@ -1,0 +1,152 @@
+﻿@model RaktarKeszlet.ViewModels.MoveContainerViewModel
+@{
+    ViewData["Title"] = "Tárolóeszköz Átmozgatása";
+}
+
+<h2 class="text-primary"><i class="bi bi-box-seam"></i> Doboz / Raklap átmozgatása</h2>
+<p class="text-muted">Mozgass át egy teljes tárolóeszközt. A benne lévő összes termék automatikusan követni fogja!</p>
+<hr />
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<form asp-action="Move" method="post">
+    <div class="row">
+        <!-- BAL OSZLOP: Doboz kiválasztása -->
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="bi bi-box"></i> Mit szeretnél mozgatni?</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tárolóeszköz kiválasztása <span class="text-danger">*</span></label>
+                        <select asp-for="SelectedContainerId" class="form-select border-primary" required>
+                            <option value="">-- Válassz dobozt vagy raklapot --</option>
+                            @foreach (var c in ViewBag.Containers)
+                            {
+                                <option value="@c.Id">@c.Name (@c.Type)</option>
+                            }
+                        </select>
+                        <span asp-validation-for="SelectedContainerId" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- JOBB OSZLOP: Új célállomás (Mély-szűrővel) -->
+        <div class="col-md-7 mb-4">
+            <div class="card shadow-sm border-primary h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-geo-alt-fill"></i> Hová szeretnéd tenni?</h5>
+                </div>
+                <div class="card-body bg-light">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Cél Cég / Tulajdonos <span class="text-danger">*</span></label>
+                        <select asp-for="TargetCompanyId" id="selCompany" class="form-select" required>
+                            <option value="">-- Válassz céget --</option>
+                            @foreach (var c in ViewBag.Companies)
+                            {
+                                <option value="@c.Id">@c.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Cél Raktárépület</label>
+                        <select asp-for="TargetBuildingId" id="selBuilding" class="form-select">
+                            <option value="">-- Közvetlenül a cégnél (udvaron) --</option>
+                            @foreach (var b in ViewBag.Buildings)
+                            {
+                                <option value="@b.Id" data-parent="@b.CompanyId">@b.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Cél Helyiség</label>
+                        <select asp-for="TargetRoomId" id="selRoom" class="form-select">
+                            <option value="">-- Nincs külön helyiség --</option>
+                            @foreach (var r in ViewBag.Rooms)
+                            {
+                                <option value="@r.Id" data-parent="@r.BuildingId">@r.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Cél Polc / Sor</label>
+                        <select asp-for="TargetShelfId" id="selShelf" class="form-select">
+                            <option value="">-- Nincs polcon --</option>
+                            @foreach (var s in ViewBag.Shelves)
+                            {
+                                <option value="@s.Id" data-parent="@s.RoomId">@s.Identifier</option>
+                            }
+                        </select>
+                    </div>
+
+                </div>
+                <div class="card-footer bg-white border-top-0 pt-3 pb-3 text-end">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Mégse</a>
+                    <button type="submit" class="btn btn-success ms-2"><i class="bi bi-arrows-move"></i> Doboz és termékek átmozgatása</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        // A jól bevált Mély-szűrő (Deep-Filter) logika a célállomáshoz
+        var originalOptions = {};
+        function applyDeepFilter() {
+            var compVal = document.getElementById('selCompany').value;
+            var bldgVal = document.getElementById('selBuilding').value;
+            var roomVal = document.getElementById('selRoom').value;
+
+            function filterLevel(targetId, validParentIds, parentVal) {
+                var targetSelect = document.getElementById(targetId);
+                if (!targetSelect) return null;
+                var prevValue = targetSelect.value;
+                targetSelect.innerHTML = "";
+                var nextValidIds = [];
+
+                originalOptions[targetId].forEach(function(opt) {
+                    var parentId = opt.getAttribute("data-parent") || "";
+                    var isValid = false;
+
+                    if (opt.value === "") isValid = true;
+                    else if (parentVal !== "") isValid = (parentId === parentVal);
+                    else if (validParentIds !== null) isValid = validParentIds.includes(parentId);
+                    else isValid = true;
+
+                    if (isValid) {
+                        targetSelect.appendChild(opt.cloneNode(true));
+                        if (opt.value !== "") nextValidIds.push(opt.value);
+                    }
+                });
+
+                targetSelect.value = Array.from(targetSelect.options).some(o => o.value === prevValue) ? prevValue : "";
+                return parentVal !== "" ? nextValidIds : (validParentIds === null ? null : nextValidIds);
+            }
+
+            var validBldgs = filterLevel('selBuilding', null, compVal);
+            var validRooms = filterLevel('selRoom', validBldgs, bldgVal);
+            filterLevel('selShelf', validRooms, roomVal);
+        }
+
+        window.addEventListener('load', function() {
+            ['selBuilding', 'selRoom', 'selShelf'].forEach(function(id) {
+                var sel = document.getElementById(id);
+                if (sel) originalOptions[id] = Array.from(sel.options).map(opt => opt.cloneNode(true));
+            });
+            ['selCompany', 'selBuilding', 'selRoom'].forEach(function(id) {
+                document.getElementById(id).addEventListener('change', applyDeepFilter);
+            });
+            applyDeepFilter();
+        });
+    </script>
+}

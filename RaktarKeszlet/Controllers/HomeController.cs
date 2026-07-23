@@ -31,21 +31,22 @@ namespace RaktarKeszlet.Controllers
                 return View(new DashboardViewModel
                 {
                     ValueByCategory = new Dictionary<string, int>(),
-                    ValueByCompany = new Dictionary<string, int>()
+                    ValueByCompany = new List<CompanyStat>()
                 });
             }
 
             // Nagyon gyors SQL lekérdezés: Csak az árat és a neveket kérjük le a memóriába
             var rawData = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Company)
-                .Where(p => p.Company.UserId == currentUserId)
-                .Select(p => new {
-                    Price = p.Price,
-                    CategoryName = p.Category != null ? p.Category.Name : "Nincs besorolva",
-                    CompanyName = p.Company != null ? p.Company.Name : "Ismeretlen cég"
-                })
-                .ToListAsync();
+      .Include(p => p.Category)
+      .Include(p => p.Company)
+      .Where(p => p.Company.UserId == currentUserId)
+      .Select(p => new {
+          Price = p.Price,
+          CategoryName = p.Category != null ? p.Category.Name : "Nincs besorolva",
+          CompanyName = p.Company != null ? p.Company.Name : "Ismeretlen cég",
+          CompanyId = p.CompanyId // Ezt az új mezõt lekérjük az adatbázisból
+      })
+      .ToListAsync();
 
             // Aggregálások kiszámítása LINQ segítségével
             var vm = new DashboardViewModel
@@ -54,14 +55,21 @@ namespace RaktarKeszlet.Controllers
                 TotalValue = rawData.Sum(x => x.Price),
 
                 ValueByCategory = rawData
-                    .GroupBy(x => x.CategoryName)
-                    .OrderByDescending(g => g.Sum(x => x.Price)) // A legértékesebbek legyenek elöl
-                    .ToDictionary(g => g.Key, g => g.Sum(x => x.Price)),
+         .GroupBy(x => x.CategoryName)
+         .OrderByDescending(g => g.Sum(x => x.Price))
+         .ToDictionary(g => g.Key, g => g.Sum(x => x.Price)),
 
+                // Cég szerinti csoportosítás kiegészítve az ID-val
                 ValueByCompany = rawData
-                    .GroupBy(x => x.CompanyName)
-                    .OrderByDescending(g => g.Sum(x => x.Price))
-                    .ToDictionary(g => g.Key, g => g.Sum(x => x.Price))
+         .GroupBy(x => new { x.CompanyId, x.CompanyName }) // ID és név alapján csoportosítunk
+         .OrderByDescending(g => g.Sum(x => x.Price))
+         .Select(g => new CompanyStat
+         {
+             CompanyId = g.Key.CompanyId,
+             CompanyName = g.Key.CompanyName,
+             TotalValue = g.Sum(x => x.Price)
+         })
+         .ToList()
             };
 
             return View(vm);

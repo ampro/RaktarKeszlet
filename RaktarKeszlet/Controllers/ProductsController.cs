@@ -32,7 +32,15 @@ public class ProductsController : Controller
 
     // GET: PRODUCTS
 
-    public async Task<IActionResult> Index(string? searchTerm, int? selectedCategoryId, int? selectedCompanyId, int? selectedBuildingId, int? selectedContainerId, int page = 1)
+    public async Task<IActionResult> Index(
+      string? searchTerm,
+      int? selectedCategoryId,
+      string? categoryName, // ÚJ: A Dashboardról érkezõ kattintás fogadása
+      int? selectedCompanyId,
+      int? selectedBuildingId,
+      int? selectedContainerId,
+      string? CompanyName, // ÚJ: A Dashboardról érkezõ kattintás fogadása
+      int page = 1)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -44,10 +52,27 @@ public class ProductsController : Controller
             .AsQueryable();
 
         // 2. SZÛRÉSEK ALKALMAZÁSA
+
+        // A) ID alapú kategória szûrés (A te meglévõ legördülõ listádból)
         if (selectedCategoryId.HasValue)
             productsQuery = productsQuery.Where(p => p.CategoryId == selectedCategoryId.Value);
 
-        if (selectedCompanyId.HasValue) // ÚJ: Cég szûrése
+        // B) Név alapú kategória szûrés (A Dashboardról történõ kattintásból)
+        if (!string.IsNullOrEmpty(categoryName))
+        {
+            if (categoryName == "Nincs besorolva")
+                productsQuery = productsQuery.Where(p => p.CategoryId == null);
+            else
+                productsQuery = productsQuery.Where(p => p.Category.Name == categoryName);
+        }
+
+        // B) Név alapú cég szûrés (A Dashboardról történõ kattintásból)
+        if (!string.IsNullOrEmpty(CompanyName))
+        {
+            productsQuery = productsQuery.Where(p => p.Company.Name == CompanyName);
+        }
+
+        if (selectedCompanyId.HasValue) // Cég szûrése
             productsQuery = productsQuery.Where(p => p.CompanyId == selectedCompanyId.Value);
 
         if (selectedBuildingId.HasValue)
@@ -80,7 +105,7 @@ public class ProductsController : Controller
         var myBuildings = await _context.Buildings.Where(b => b.Company.UserId == currentUserId).ToListAsync();
         var myContainers = await _context.StorageContainers.Where(c => c.Company.UserId == currentUserId).ToListAsync();
 
-        // 5. ViewModel összeállítása
+        // 5. ViewModel összeállítása (Változatlanul hagyva a te kódod alapján)
         var viewModel = new ProductListViewModel
         {
             Products = pagedProducts,
@@ -88,7 +113,7 @@ public class ProductsController : Controller
             TotalPages = totalPages,
             SearchTerm = searchTerm,
             SelectedCategoryId = selectedCategoryId,
-            SelectedCompanyId = selectedCompanyId, // ÚJ
+            SelectedCompanyId = selectedCompanyId,
             SelectedBuildingId = selectedBuildingId,
             SelectedContainerId = selectedContainerId,
             Categories = new SelectList(myCategories, "Id", "Name", selectedCategoryId),
@@ -103,24 +128,39 @@ public class ProductsController : Controller
     // GET: PRODUCTS/Details/5
     public async Task<IActionResult> Details(int? id)
     {
-        if (id == null)
-        {
-            return NotFound();
-        }
+        if (id == null) return NotFound();
 
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // 1. Lekérjük a terméket a teljes tárolási hierarchiájával
         var product = await _context.Products
             .Include(p => p.Category)
             .Include(p => p.Company)
             .Include(p => p.Building)
             .Include(p => p.Room)
             .Include(p => p.Shelf)
-            .Include(p => p.StorageContainer).FirstOrDefaultAsync(m => m.Id == id);
-        if (product == null)
-        {
-            return NotFound();
-        }
+            .Include(p => p.StorageContainer)
+            .FirstOrDefaultAsync(m => m.Id == id && m.Company.UserId == currentUserId);
 
-        return View(product);
+        if (product == null) return NotFound();
+
+        // 2. Lekérjük a termékhez tartozó LOG-okat (Mozgástörténet)
+        var logs = await _context.TransactionLogs
+            .Include(t => t.User) // Behozzuk a felhasználó adatait (hogy lássuk, KI csinálta)
+            .Include(t => t.FromStorageContainer) // Honnan
+            .Include(t => t.ToStorageContainer)   // Hová
+            .Where(t => t.ProductId == id)
+            .OrderByDescending(t => t.TransactionDate) // A legfrissebb legyen legfelül
+            .ToListAsync();
+
+        // 3. Összeállítjuk a ViewModel-t
+        var vm = new RaktarKeszlet.ViewModels.ProductDetailsViewModel
+        {
+            Product = product,
+            TransactionLogs = logs
+        };
+
+        return View(vm);
     }
 
     // GET: Products/Create
@@ -384,7 +424,24 @@ public class ProductsController : Controller
 
             if (product == null) return NotFound();
 
-            // 1. KÉPFELTÖLTÉS ÉS CSERE KEZELÉSE
+            // --- 1. EREDETI ÁLLAPOT MENTÉSE A LOGOLÁSHOZ ---
+            int? originalContainerId = product.StorageContainerId;
+            int? newContainerId = vm.StorageContainerId;
+
+            // --- 2. TRANZAKCIÓS NAPLÓ (LOG) LÉTREHOZÁSA ---
+            var log = new TransactionLog
+            {
+                UserId = currentUserId,
+                ProductId = product.Id,
+                // Eldöntjük, hogy tényleges raktári áthelyezés történt-e, vagy csak adatot (pl. árat) módosítottak
+                ActionType = originalContainerId != newContainerId ? "Termék áthelyezése" : "Termék adatainak módosítása",
+                TransactionDate = DateTime.Now,
+                FromStorageContainerId = originalContainerId,
+                ToStorageContainerId = newContainerId
+            };
+            _context.TransactionLogs.Add(log);
+
+            // 3. KÉPFELTÖLTÉS ÉS CSERE KEZELÉSE (Az eredeti kódod alapján)
             if (vm.Photo != null)
             {
                 string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images");
@@ -413,7 +470,7 @@ public class ProductsController : Controller
                 product.PhotoUrl = "/images/" + uniqueFileName;
             }
 
-            // 2. MEGLÉVÕ ADATOK FELÜLÍRÁSA
+            // 4. MEGLÉVÕ ADATOK FELÜLÍRÁSA
             product.Name = vm.Name;
             product.Price = vm.Price;
             product.Barcode = vm.Barcode;
@@ -429,6 +486,8 @@ public class ProductsController : Controller
             try
             {
                 _context.Update(product);
+
+                // A termék adatainak frissítése és az új log rögzítése EGYETLEN tranzakcióként fut le!
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
@@ -437,7 +496,9 @@ public class ProductsController : Controller
                 else throw;
             }
 
-            return RedirectToAction(nameof(Index));
+            // Sikerüzenet és visszairányítás a Részletek oldalra, hogy azonnal látható legyen a friss mozgástörténet
+            TempData["SuccessMessage"] = "A termék adatai és mozgástörténete sikeresen frissítve!";
+            return RedirectToAction(nameof(Details), new { id = product.Id });
         }
 
         // --- HIBA ESETÉN A LISTÁK ÚJRATÖLTÉSE ---

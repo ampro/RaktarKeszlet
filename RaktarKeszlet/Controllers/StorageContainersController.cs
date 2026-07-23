@@ -216,4 +216,80 @@ public class StorageContainersController : Controller
     {
         return _context.StorageContainers.Any(e => e.Id == id);
     }
+
+    // GET: StorageContainers/Move
+    public async Task<IActionResult> Move()
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Betöltjük a saját céghez tartozó dobozokat a kiválasztáshoz
+        ViewBag.Containers = await _context.StorageContainers
+            .Where(c => c.Company.UserId == currentUserId)
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+
+        // Betöltjük a hierarchiát az új célállomás kiválasztásához
+        ViewBag.Companies = await _context.Companies.Where(c => c.UserId == currentUserId).ToListAsync();
+        ViewBag.Buildings = await _context.Buildings.Where(b => b.Company.UserId == currentUserId).ToListAsync();
+        ViewBag.Rooms = await _context.Rooms.Where(r => r.Building.Company.UserId == currentUserId).ToListAsync();
+        ViewBag.Shelves = await _context.Shelves.Where(s => s.Room.Building.Company.UserId == currentUserId).ToListAsync();
+
+        return View(new RaktarKeszlet.ViewModels.MoveContainerViewModel());
+    }
+
+    // POST: StorageContainers/Move
+    [HttpPost]
+    public async Task<IActionResult> Move(RaktarKeszlet.ViewModels.MoveContainerViewModel vm)
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // 1. Megkeressük a mozgatni kívánt dobozt
+        var container = await _context.StorageContainers
+            .FirstOrDefaultAsync(c => c.Id == vm.SelectedContainerId && c.Company.UserId == currentUserId);
+
+        if (container == null)
+        {
+            TempData["ErrorMessage"] = "A kiválasztott tároló nem található!";
+            return RedirectToAction(nameof(Move));
+        }
+
+        // 2. Frissítjük magának a doboznak a helyét
+        container.CompanyId = vm.TargetCompanyId;
+        container.ShelfId = vm.TargetShelfId;
+
+        // 3. Lekérjük a dobozban lévõ ÖSSZES terméket
+        var productsInContainer = await _context.Products
+            .Where(p => p.StorageContainerId == container.Id)
+            .ToListAsync();
+
+        // 4. Frissítjük a termékek helyadatait és logoljuk a mozgást a SAJÁT MODELLED ALAPJÁN
+        foreach (var product in productsInContainer)
+        {
+            // Tranzakciós napló bejegyzése az általad definiált mezõkkel
+            var log = new TransactionLog
+            {
+                UserId = currentUserId,
+                ProductId = product.Id,
+                ActionType = "Tárolóeszköz átmozgatása", // Ebbõl tudjuk, hogy az egész doboz mozgott
+                TransactionDate = DateTime.Now,
+
+                // Mivel a termék ugyanabban a dobozban marad (csak a doboz van új polcon), mindkettõ a jelenlegi doboz
+                FromStorageContainerId = container.Id,
+                ToStorageContainerId = container.Id
+            };
+            _context.TransactionLogs.Add(log);
+
+            // Termék adatainak szinkronizálása a doboz új helyével
+            product.CompanyId = vm.TargetCompanyId;
+            product.BuildingId = vm.TargetBuildingId;
+            product.RoomId = vm.TargetRoomId;
+            product.ShelfId = vm.TargetShelfId;
+        }
+
+        // Egyetlen tranzakcióval elmentjük a doboz új helyét, a termékek új adatait és a logokat
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = $"A(z) {container.Name} doboz és a benne lévõ {productsInContainer.Count} db termék sikeresen átmozgatva az új helyére!";
+        return RedirectToAction(nameof(Index));
+    }
 }
