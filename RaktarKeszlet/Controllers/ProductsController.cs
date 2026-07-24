@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using RaktarKeszlet.Data;
 using RaktarKeszlet.Models;
 using RaktarKeszlet.ViewModels;
-
+using RaktarKeszlet.Services;
 
 // ... (a Controller elején lévõ konstruktorhoz esetleg hozzá kell adnod az IWebHostEnvironment-et, ha képeket is mentesz)
 
@@ -20,12 +20,14 @@ public class ProductsController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly IFileUploadService _fileUploadService; // Új sor
 
     // A konstruktorban elkérjük a környezeti változókat is a képmentéshez
-    public ProductsController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+    public ProductsController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, IFileUploadService fileUploadService)
     {
         _context = context;
         _webHostEnvironment = webHostEnvironment;
+        _fileUploadService = fileUploadService; // Új sor
     }
 
 
@@ -281,26 +283,10 @@ public class ProductsController : Controller
             string uploadedPhotoUrl = null;
             if (vm.Photo != null)
             {
-                // Létrehozzuk a wwwroot/images mappát, ha még nem létezne
-                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                // Egyedi fájlnév generálása, hogy ne írják felül egymást a képek
-                string uniqueFileName = Guid.NewGuid().ToString() + "_" + vm.Photo.FileName;
-                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                // Fájl mentése a szerverre
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await vm.Photo.CopyToAsync(fileStream);
-                }
-
-                // Az adatbázisba csak az URL-t mentjük (PhotoUrl)
-                uploadedPhotoUrl = "/images/" + uniqueFileName;
+                // A képet a wwwroot/images/products mappába mentjük
+                uploadedPhotoUrl = await _fileUploadService.UploadFileAsync(vm.Photo, "products");
             }
+            // Itt az uploadedPhotoUrl értéket már hozzárendelheted az új Product objektum PhotoUrl mezõjéhez!
 
             // --- 3. PRODUCT ENTITÁS ÖSSZEÁLLÍTÁSA A VIEWMODEL ALAPJÁN ---
             var product = new Product
@@ -467,7 +453,7 @@ public class ProductsController : Controller
                 }
 
                 // Az adatbázis URL frissítése
-                product.PhotoUrl = "/images/" + uniqueFileName;
+                product.PhotoUrl =  uniqueFileName;
             }
 
             // 4. MEGLÉVÕ ADATOK FELÜLÍRÁSA

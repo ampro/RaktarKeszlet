@@ -50,6 +50,7 @@ namespace RaktarKeszlet.ViewModels
     {
         public Shelf Shelf { get; set; }
         public IEnumerable<StorageContainer> PagedContainers { get; set; }
+        public IEnumerable<Product> DirectProducts { get; set; }
 
         public int TotalContainersCount { get; set; }
         public int TotalProductsCount { get; set; }

@@ -47,8 +47,7 @@ public class ShelvesController : Controller
 
         if (shelf == null) return NotFound();
 
-        // 2. Aggregátumok kiszámítása: Az ezen a polcon lévõ összes termékre 
-        // (Mindegy, hogy dobozban van, vagy csak úgy magában a polcon, a terméknél a ShelfId jelöli ezt)
+        // 2. Aggregátumok kiszámítása
         var productsOnShelfQuery = _context.Products.Where(p => p.ShelfId == id);
         int totalProducts = await productsOnShelfQuery.CountAsync();
         decimal totalValue = totalProducts > 0 ? await productsOnShelfQuery.SumAsync(p => p.Price) : 0;
@@ -66,6 +65,12 @@ public class ShelvesController : Controller
             .Take(pageSize)
             .ToListAsync();
 
+        // --- ÚJ RÉSZ: Közvetlenül a polcra helyezett termékek lekérése ---
+        var directProducts = await _context.Products
+            .Include(p => p.Category) // Betöltjük a kategóriát is, hogy a UI-on a kártyán megjelenhessen!
+            .Where(p => p.ShelfId == id && p.StorageContainerId == null)
+            .ToListAsync();
+
         // 4. ViewModel összeállítása
         var vm = new ShelfDetailsViewModel
         {
@@ -75,7 +80,8 @@ public class ShelvesController : Controller
             TotalProductsCount = totalProducts,
             TotalProductsValue = totalValue,
             CurrentPage = page,
-            TotalPages = totalPages
+            TotalPages = totalPages,
+            DirectProducts = directProducts // --- ÚJ RÉSZ: Átadjuk a termékeket a nézetnek ---
         };
 
         return View(vm);

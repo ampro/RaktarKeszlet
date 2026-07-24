@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using RaktarKeszlet.Data;
 using RaktarKeszlet.Models;
+using RaktarKeszlet.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,9 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+
 
 // Add Google authentication - Saját Google OAuth 2.0 hitelesítés hozzáadása
 builder.Services.AddAuthentication()

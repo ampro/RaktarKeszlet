@@ -3,6 +3,7 @@
     ViewData["Title"] = "Polc / Sor részletei";
 }
 
+<!-- Címsor -->
 <h1>@Model.Shelf.Identifier adatai</h1>
 <p class="text-muted">
     Helyiség: <strong>@(Model.Shelf.Room?.Name ?? "-")</strong>
@@ -46,8 +47,68 @@
 <!-- RÉSZNÉZET BEHÍVÁSA: Lapozó -->
 <partial name="_Pagination" model="(Model.CurrentPage, Model.TotalPages)" />
 
+
+<!-- ÚJ RÉSZ: KÖZVETLENÜL A POLCRA HELYEZETT TERMÉKEK -->
+<h4 class="mb-3 mt-5 text-secondary"><i class="bi bi-box-seam"></i> Közvetlenül a polcon lévõ termékek</h4>
+
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-3 mb-4">
+    @if (Model.DirectProducts != null && Model.DirectProducts.Any())
+    {
+        @foreach (var item in Model.DirectProducts)
+        {
+            <div class="col">
+                <!-- A kártya kattintható és a Termék Részletek (Details) oldalra visz -->
+                <a asp-controller="Products" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark">
+                    <div class="card h-100 shadow-sm border border-light-subtle product-card bg-white">
+
+                        <!-- Termék fotója vagy helyettesítõ ikon -->
+                        @if (!string.IsNullOrEmpty(item.PhotoUrl))
+                        {
+                            <img src="~/images/@item.PhotoUrl" class="card-img-top" alt="@item.Name" style="height: 120px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center border-bottom" style="height: 120px;">
+                                <i class="bi bi-box-seam text-secondary" style="font-size: 3rem;"></i>
+                            </div>
+                        }
+
+                        <div class="card-body d-flex flex-column p-2">
+                            <div class="mb-1">
+                                <!-- Kategória badge -->
+                                <span class="badge bg-secondary" style="font-size: 0.7rem;">@(item.Category?.Name ?? "Nincs kategória")</span>
+                            </div>
+
+                            <h6 class="card-title fw-bold mb-1 text-truncate" title="@item.Name">@item.Name</h6>
+                            <p class="card-text text-success fw-bold mb-1" style="font-size: 0.95rem;">@item.Price Ft</p>
+
+                            <div class="mt-auto lh-sm">
+                                <small class="text-muted" style="font-size: 0.75rem;">Vonal.: @item.Barcode</small><br />
+                                <small class="text-muted" style="font-size: 0.75rem;">R kód: @item.RCode</small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="alert alert-light border shadow-sm d-flex align-items-center">
+                <i class="bi bi-info-circle text-primary fs-4 me-3"></i>
+                <div>
+                    Ezen a polcon nincsenek közvetlenül (dobozon kívül) elhelyezett termékek.
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<!-- KÖZVETLEN TERMÉKEK VÉGE -->
+
+
 <div class="mt-4 border-top pt-4">
-    <!-- EZ AZ ÚJ GOMB -->
+    <!-- EZ AZ ÚJ GOMB, ami már benne volt a kódodban -->
     <a asp-controller="Products" asp-action="Create"
        asp-route-shelfId="@Model.Shelf.Id"
        asp-route-roomId="@Model.Shelf.RoomId"
@@ -56,13 +117,9 @@
        class="btn btn-success shadow-sm me-2">
         <i class="bi bi-plus-circle"></i> Új termék elhelyezése ezen a polcon
     </a>
-
-    <!-- Korábbi vissza gombok... -->
 </div>
 
-
-
-<div class="mt-4 border-top pt-4">
+<div class="mt-3 border-top pt-3">
     <a asp-action="Index" class="btn btn-outline-secondary">Vissza a polcok listájához</a>
     <a asp-controller="Rooms" asp-action="Details" asp-route-id="@Model.Shelf.RoomId" class="btn btn-outline-primary ms-2">Vissza a helyiséghez</a>
 </div>
