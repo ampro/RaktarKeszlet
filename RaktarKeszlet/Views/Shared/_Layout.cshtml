@@ -1,75 +1,114 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="hu">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - RaktarKeszlet</title>
+    <title>@ViewData["Title"] - RaktárKészlet</title>
+
+    <!-- Alap Bootstrap -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <!-- ÚJ: Bootstrap Ikonok a modern kinézethez -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/RaktarKeszlet.styles.css" asp-append-version="true" />
-    <!-- Google tag (gtag.js) -->
+
+    <!-- Google tag (gtag.js) - Amit korábban beállítottunk! -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-54NBDDFVDT"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-
         gtag('config', 'G-54NBDDFVDT');
     </script>
-
 </head>
-<body>
+<body class="bg-light">
+    <!-- Egy finom világos háttérszín a teljes oldalnak -->
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">RaktarKeszlet</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+        <!-- ÚJ: Sötét, elegáns navigációs sáv árnyékkal és kicsit nagyobb belső margóval -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3 mb-4">
+            <div class="container-fluid px-4">
+
+                <!-- Logó rész -->
+                <a class="navbar-brand fw-bold d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-box-seam text-warning fs-4"></i> RaktárKészlet
+                </a>
+
+                <!-- Mobil menü gomb -->
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                    <!-- Menüpontok ikonokkal és kicsit nagyobb (gap-2) térközzel -->
+                    <ul class="navbar-nav flex-grow-1 ms-lg-4 gap-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door me-1"></i> Főoldal
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Companies" asp-action="Index">Cégek/Telephelyek</a>
+                            <a class="nav-link" asp-area="" asp-controller="Companies" asp-action="Index">
+                                <i class="bi bi-buildings me-1"></i> Telephelyek
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Buildings" asp-action="Index">Épületek</a>
+                            <a class="nav-link" asp-controller="Buildings" asp-action="Index">
+                                <i class="bi bi-building me-1"></i> Épületek
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Rooms" asp-action="Index">Helyiségek</a>
+                            <a class="nav-link" asp-controller="Rooms" asp-action="Index">
+                                <i class="bi bi-door-open me-1"></i> Helyiségek
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Shelves" asp-action="Index">Polcok/Sorok</a>
+                            <a class="nav-link" asp-controller="Shelves" asp-action="Index">
+                                <i class="bi bi-bookshelf me-1"></i> Polcok
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="StorageContainers" asp-action="Index">Tárolóeszközök</a>
+                            <a class="nav-link" asp-controller="StorageContainers" asp-action="Index">
+                                <i class="bi bi-box2 me-1"></i> Tárolók
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Products" asp-action="Index">Termékek</a>
+                            <a class="nav-link" asp-controller="Products" asp-action="Index">
+                                <i class="bi bi-boxes me-1"></i> Termékek
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Categories" asp-action="Index">Termék kategóriák</a>
+                            <a class="nav-link" asp-controller="Categories" asp-action="Index">
+                                <i class="bi bi-tags me-1"></i> Kategóriák
+                            </a>
                         </li>
                     </ul>
-                    <partial name="_LoginPartial" />
+
+                    <!-- Bejelentkezés rész a jobb oldalon -->
+                    <div class="d-flex align-items-center">
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container">
-        <main role="main" class="pb-3">
+        <!-- A fő tartalom egy pici fehér doboz-árnyékos kártyahatást is kaphatna később, de a konténer marad -->
+        <main role="main" class="pb-4">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - RaktarKeszlet - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <!-- ÚJ: Letisztultabb, modern lábléc -->
+    <footer class="border-top footer text-muted bg-white py-3 mt-auto">
+        <div class="container text-center">
+            &copy; 2026 - <i class="bi bi-box-seam"></i> RaktárKészlet Rendszer - <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-decoration-none">Adatvédelem</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

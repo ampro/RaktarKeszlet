@@ -27,7 +27,7 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// WWW -> Non-WWW átirányítási szabály beállítása
+//WWW->Non - WWW átirányítási szabály beállítása
 var options = new RewriteOptions()
     .AddRedirectToHttpsPermanent() // Ha HTTP-n jönne, átrakja HTTPS-re
     .AddRedirect("^www\\.holmijaim\\.hu(.*)", "https://holmijaim.hu$1"); // WWW levágása

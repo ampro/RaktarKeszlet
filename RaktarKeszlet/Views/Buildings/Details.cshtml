@@ -3,10 +3,25 @@
     ViewData["Title"] = "Épület részletei";
 }
 
-<h1>@Model.Building.Name adatai</h1>
-<p class="text-muted">Cég / Tulajdonos: <strong>@(Model.Building.Company?.Name ?? "-")</strong></p>
+<!-- Címsor, Vissza gomb és Új helyiség gyorsgomb -->
+<div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <h2 class="fw-bold"><i class="bi bi-building me-2"></i>@Model.Building.Name adatai</h2>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary shadow-sm me-2">
+            <i class="bi bi-arrow-left"></i> Vissza
+        </a>
+        <!-- Gyorsgomb új helyiség felviteléhez ebbe az épületbe -->
+        <a asp-controller="Rooms" asp-action="Create" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i> Új helyiség
+        </a>
+    </div>
+</div>
+
+<!-- Itt átírtuk a Cég szót Telephelyre a felületen -->
+<p class="text-muted">Telephely / Tulajdonos: <strong><i class="bi bi-buildings"></i> @(Model.Building.Company?.Name ?? "-")</strong></p>
 <hr />
 
+<!-- A TE EREDETI ÖSSZESÍTÕ KÁRTYÁID -->
 <div class="row mb-4">
     <div class="col-md-4 mb-3">
         <div class="card bg-primary text-white shadow-sm h-100">
@@ -36,10 +51,55 @@
 
 <h4 class="mb-3 text-secondary"><i class="bi bi-diagram-3"></i> Az épületben található helyiségek</h4>
 
-<partial name="_RoomListTable" model="Model.PagedRooms" />
+<!-- ÚJ RÉSZ: Helyiségek kártyás megjelenítése (A táblázat helyett) -->
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-4">
+
+    @if (Model.PagedRooms != null && Model.PagedRooms.Any())
+    {
+        @foreach (var item in Model.PagedRooms)
+        {
+            <div class="col">
+                <!-- A kártya a Helyiség Részletek (Details) oldalára visz! -->
+                <a asp-controller="Rooms" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark">
+
+                    <div class="card h-100 shadow-sm border border-light-subtle product-card bg-white text-center">
+
+                        <!-- Ikonos fejléc a helyiséghez (A zöld/success szín jól elkülöníti az épületektõl) -->
+                        <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
+                            <i class="bi bi-door-open text-success" style="font-size: 3.5rem;"></i>
+                        </div>
+
+                        <div class="card-body d-flex flex-column pb-4">
+                            <h5 class="card-title fw-bold mb-3">@item.Name</h5>
+
+                            <div class="mt-auto">
+                                <span class="badge bg-success text-white px-3 py-2 rounded-pill">Helyiség</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="alert alert-warning shadow-sm d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                <div>
+                    <strong>Nincsenek helyiségek!</strong><br />
+                    Ebben az épületben jelenleg még nincs egyetlen helyiség sem rögzítve.
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- A TE EREDETI LAPOZÓD (Megtartva!) -->
 <partial name="_Pagination" model="(Model.CurrentPage, Model.TotalPages)" />
 
 <div class="mt-4 border-top pt-4">
-    <a asp-action="Index" class="btn btn-outline-secondary">Vissza a listához</a>
-    <a asp-controller="Companies" asp-action="Details" asp-route-id="@Model.Building.CompanyId" class="btn btn-outline-primary ms-2">Vissza a céghez</a>
+    <a asp-action="Index" class="btn btn-outline-secondary">Vissza az épületekhez</a>
+    <!-- UI címke itt is módosítva 'telephelyhez'-re -->
+    <a asp-controller="Companies" asp-action="Details" asp-route-id="@Model.Building.CompanyId" class="btn btn-outline-primary ms-2">Vissza a telephelyhez</a>
 </div>

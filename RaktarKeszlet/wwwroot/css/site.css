@@ -20,3 +20,20 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Egy nagyon finom szürke háttér az egész oldalnak, hogy a fehér kártyák kiugorjanak */
+body {
+    background-color: #f0f2f5 !important;
+}
+
+/* A kártyák animációja és alapbeállítása */
+.product-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 8px; /* Lekerekített sarkok a modern hatásért */
+}
+
+    /* Amikor ráviszed az egeret, határozottabban kiemelkedik */
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.2) !important;
+    }
