@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using RaktarKeszlet.Data;
 using RaktarKeszlet.Models;
@@ -25,6 +26,14 @@ builder.Services.AddAuthentication()
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+// WWW -> Non-WWW átirányítási szabály beállítása
+var options = new RewriteOptions()
+    .AddRedirectToHttpsPermanent() // Ha HTTP-n jönne, átrakja HTTPS-re
+    .AddRedirect("^www\\.holmijaim\\.hu(.*)", "https://holmijaim.hu$1"); // WWW levágása
+
+// Middleware aktiválása
+app.UseRewriter(options);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
