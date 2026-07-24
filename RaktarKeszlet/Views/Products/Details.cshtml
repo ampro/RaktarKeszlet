@@ -1,19 +1,42 @@
 ﻿@model RaktarKeszlet.ViewModels.ProductDetailsViewModel
-
 @{
     ViewData["Title"] = "Termék részletei";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 mt-2">
     <h1 class="text-primary"><i class="bi bi-box-seam"></i> @Model.Product.Name</h1>
     <span class="badge bg-success fs-4 shadow-sm">@Model.Product.Price.ToString("N0") Ft</span>
 </div>
 <hr />
 
 <div class="row mb-4">
-    <!-- BAL OSZLOP: Termék alapadatok -->
-    <div class="col-md-5 mb-3">
-        <div class="card shadow-sm border-info h-100">
+    <!-- BAL OSZLOP: Fotó és Termék alapadatok -->
+    <!-- ÚJ JAVÍTÁS: d-flex flex-column hozzáadva, hogy a belső kártyák arányosan töltsék ki a helyet -->
+    <div class="col-md-5 mb-3 d-flex flex-column">
+
+        <!-- FOTÓ KÁRTYA -->
+        <div class="card shadow-sm border-0 mb-3">
+            @if (!string.IsNullOrEmpty(Model.Product.PhotoUrl))
+            {
+                <a href="#" data-bs-toggle="modal" data-bs-target="#photoModal" title="Kattints a nagyításhoz!">
+                    <img src="~/images/@Model.Product.PhotoUrl" class="card-img-top rounded img-fluid" alt="@Model.Product.Name" style="object-fit: cover; height: 300px; width: 100%; cursor: zoom-in;">
+                </a>
+                <div class="card-body text-center p-2 bg-light">
+                    <small class="text-muted"><i class="bi bi-zoom-in"></i> Kattints a képre a nagyításhoz</small>
+                </div>
+            }
+            else
+            {
+                <div class="card-body bg-light d-flex flex-column align-items-center justify-content-center" style="height: 300px;">
+                    <i class="bi bi-camera text-secondary mb-2" style="font-size: 4rem;"></i>
+                    <span class="text-muted">Nincs feltöltött fotó</span>
+                </div>
+            }
+        </div>
+
+        <!-- EREDETI Termék adatai kártya -->
+        <!-- ÚJ JAVÍTÁS: A h-100 osztályt lecseréltük flex-grow-1 -re, hogy ne csorduljon túl! -->
+        <div class="card shadow-sm border-info flex-grow-1">
             <div class="card-header bg-info text-dark fw-bold">
                 <i class="bi bi-info-circle"></i> Termék adatai
             </div>
@@ -25,7 +48,8 @@
                     <dt class="col-sm-5 text-muted mt-3">Vonalkód</dt>
                     <dd class="col-sm-7 mt-3">@(Model.Product.Barcode ?? "-")</dd>
 
-                    <!-- Ha van fotó URL vagy R kód a modelledben, azokat is ide teheted -->
+                    <dt class="col-sm-5 text-muted mt-3">R kód</dt>
+                    <dd class="col-sm-7 mt-3">@(Model.Product.RCode ?? "-")</dd>
                 </dl>
             </div>
         </div>
@@ -40,7 +64,7 @@
             <div class="card-body bg-light">
                 <ul class="list-unstyled mb-0 fs-5">
                     <li class="mb-2">
-                        <i class="bi bi-building text-primary"></i> <strong>Cég:</strong>
+                        <i class="bi bi-building text-primary"></i> <strong>Telephely:</strong>
                         @(Model.Product.Company?.Name ?? "-")
                     </li>
                     <li class="mb-2 ms-3">
@@ -132,7 +156,27 @@
     </div>
 </div>
 
+<!-- JAVÍTOTT GOMBOK: Szépen a lap alján maradnak! -->
 <div class="mt-4 border-top pt-4">
     <a asp-action="Edit" asp-route-id="@Model.Product.Id" class="btn btn-warning shadow-sm"><i class="bi bi-pencil"></i> Szerkesztés</a>
     <a asp-action="Index" class="btn btn-outline-secondary ms-2">Vissza a listához</a>
 </div>
+
+<!-- ========================================== -->
+<!-- BOOTSTRAP MODAL (Felugró ablak a nagy képhez) -->
+<!-- ========================================== -->
+@if (!string.IsNullOrEmpty(Model.Product.PhotoUrl))
+{
+    <div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content bg-transparent border-0">
+                <div class="modal-header border-0 pb-0 justify-content-end">
+                    <button type="button" class="btn-close btn-close-white bg-dark p-2 rounded-circle" data-bs-dismiss="modal" aria-label="Bezárás"></button>
+                </div>
+                <div class="modal-body text-center p-0">
+                    <img src="~/images/@Model.Product.PhotoUrl" class="img-fluid rounded shadow-lg" alt="@Model.Product.Name" style="max-height: 85vh; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+    </div>
+}
