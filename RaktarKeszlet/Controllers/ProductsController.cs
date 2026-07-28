@@ -447,32 +447,26 @@ public class ProductsController : Controller
             _context.TransactionLogs.Add(log);
 
             // 3. KÉPFELTÖLTÉS ÉS CSERE KEZELÉSE (Az eredeti kódod alapján)
+            // 3. KÉPFELTÖLTÉS ÉS CSERE KEZELÉSE (Javítva: FileUploadService használatával)
             if (vm.Photo != null)
             {
-                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images");
-                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+                // Új kép mentése az általunk írt szolgáltatáson keresztül (ez végzi a 800px-es SkiaSharp átméretezést!)
+                string uploadedPhotoUrl = await _fileUploadService.UploadFileAsync(vm.Photo, "products");
 
-                string uniqueFileName = Guid.NewGuid().ToString() + "_" + vm.Photo.FileName;
-                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                // Új kép mentése
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await vm.Photo.CopyToAsync(fileStream);
-                }
-
-                // Régi kép törlése a szerverrõl, ha volt
+                // Régi kép törlése a szerverrõl, ha volt ilyen
                 if (!string.IsNullOrEmpty(product.PhotoUrl))
                 {
-                    string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, product.PhotoUrl.TrimStart('/'));
+                    // Mivel a PhotoUrl most már "products/fajlnev.jpg" formátumban van, az "images" mappához fûzzük hozzá
+                    string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "images", product.PhotoUrl.TrimStart('/'));
+
                     if (System.IO.File.Exists(oldFilePath))
                     {
                         System.IO.File.Delete(oldFilePath);
                     }
                 }
 
-                // Az adatbázis URL frissítése
-                product.PhotoUrl =  uniqueFileName;
+                // Az adatbázis URL frissítése az új (már lekicsinyített) fájlra
+                product.PhotoUrl = uploadedPhotoUrl;
             }
 
             // 4. MEGLÉVÕ ADATOK FELÜLÍRÁSA
