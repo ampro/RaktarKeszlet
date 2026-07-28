@@ -1,0 +1,54 @@
+﻿@model RaktarKeszlet.ViewModels.AggregateCardsViewModel
+
+<div class="row mb-4">
+    <!-- 1. Kártya (Entitás darabszám - ez általában nem a termékekre mutat) -->
+    <div class="col-md-4 mb-3">
+        <div class="card bg-primary text-white shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase text-white-50">@Model.FirstCardTitle</h6>
+                <h2 class="mb-0"><i class="bi @Model.FirstCardIcon"></i> @Model.FirstCardCount db</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Kártya: Termék darabszám (Kattintható) -->
+    <div class="col-md-4 mb-3">
+        <a asp-controller="Products" asp-action="Index"
+           asp-route-selectedCompanyId="@Model.CompanyId"
+           asp-route-selectedBuildingId="@Model.BuildingId"
+           asp-route-roomId="@Model.RoomId"
+           asp-route-shelfId="@Model.ShelfId"
+           class="text-decoration-none">
+            <!-- A product-card osztályt a site.css-ből használjuk, hogy rámutatáskor kiemelkedjen -->
+            <div class="card bg-info text-dark shadow-sm h-100 product-card">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase text-dark-50">Készlet Darabszáma</h6>
+                    <h2 class="mb-0">@Model.TotalProductsCount db termék</h2>
+                    <div class="mt-2 text-dark-50" style="font-size: 0.8rem;">
+                        <i class="bi bi-filter-circle"></i> Kattints a szűrt listához
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- 3. Kártya: Termék érték (Kattintható) -->
+    <div class="col-md-4 mb-3">
+        <a asp-controller="Products" asp-action="Index"
+           asp-route-companyId="@Model.CompanyId"
+           asp-route-buildingId="@Model.BuildingId"
+           asp-route-roomId="@Model.RoomId"
+           asp-route-shelfId="@Model.ShelfId"
+           class="text-decoration-none">
+            <div class="card bg-success text-white shadow-sm h-100 product-card">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase text-white-50">Készlet Összértéke</h6>
+                    <h2 class="mb-0">@Model.TotalProductsValue.ToString("N0") Ft</h2>
+                    <div class="mt-2 text-white-50" style="font-size: 0.8rem;">
+                        <i class="bi bi-filter-circle"></i> Kattints a szűrt listához
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>

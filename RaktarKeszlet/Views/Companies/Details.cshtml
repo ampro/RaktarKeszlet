@@ -19,33 +19,15 @@
 </div>
 <hr />
 
-<!-- A TE EREDETI ÖSSZESÍTÕ KÁRTYÁID (Megtartva!) -->
-<div class="row mb-4">
-    <div class="col-md-4 mb-3">
-        <div class="card bg-primary text-white shadow-sm h-100">
-            <div class="card-body">
-                <h6 class="card-title text-uppercase text-white-50">Nyilvántartott Épületek</h6>
-                <h2 class="mb-0"><i class="bi bi-building"></i> @Model.TotalBuildingsCount db</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-3">
-        <div class="card bg-info text-dark shadow-sm h-100">
-            <div class="card-body">
-                <h6 class="card-title text-uppercase text-dark-50">Telephely Teljes Készlete</h6>
-                <h2 class="mb-0">@Model.TotalProductsCount db termék</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-3">
-        <div class="card bg-success text-white shadow-sm h-100">
-            <div class="card-body">
-                <h6 class="card-title text-uppercase text-white-50">Készlet Összértéke</h6>
-                <h2 class="mb-0">@Model.TotalProductsValue.ToString("N0") Ft</h2>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- A korábbi 3 kártyát tartalmazó HTML kód HELYETT: -->
+<partial name="_AggregateCards" model='new RaktarKeszlet.ViewModels.AggregateCardsViewModel {
+    FirstCardTitle = "Nyilvántartott Épületek",
+    FirstCardIcon = "bi-building",
+    FirstCardCount = Model.TotalBuildingsCount,
+    TotalProductsCount = Model.TotalProductsCount,
+    TotalProductsValue = Model.TotalProductsValue,
+    CompanyId = Model.Company.Id
+}' />
 
 <h4 class="mb-3 text-secondary"><i class="bi bi-buildings"></i> A telephelyhez tartozó épületek</h4>
 

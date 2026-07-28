@@ -11,9 +11,11 @@ namespace RaktarKeszlet.ViewModels
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Az ár megadása kötelező!")]
-        public int Price { get; set; }
+        public int Price { get; set; } = 0;
 
-      
+        // Alapértelmezetten 1 darabot mentünk, ha a felhasználó nem ír be mást
+        public int Quantity { get; set; } = 1;
+
         public string? Barcode { get; set; }
 
         //Valójában QR kód, de a rövidítés miatt RCode-nak hívjuk

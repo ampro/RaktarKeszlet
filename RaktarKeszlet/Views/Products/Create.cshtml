@@ -24,11 +24,30 @@
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Price" class="form-label fw-bold">Ár (Ft) *</label>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label asp-for="Price" class="form-label fw-bold">Ár (Ft) *</label>
+                    <input asp-for="Price" class="form-control" type="number" />
+                    <span asp-validation-for="Price" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Quantity" class="control-label fw-bold">Mennyiség (db)</label>
+                    <input asp-for="Quantity" type="number" min="1" class="form-control" value="1" />
+                    <span asp-validation-for="Quantity" class="text-danger"></span>
+
+                </div>
+
+              @*   <label asp-for="Price" class="form-label fw-bold">Ár (Ft) *</label>
                 <input asp-for="Price" class="form-control" type="number" />
-                <span asp-validation-for="Price" class="text-danger"></span>
+                <span asp-validation-for="Price" class="text-danger"></span> *@
             </div>
+
+           @*  <div class="form-group mb-3">
+                <label asp-for="Quantity" class="control-label fw-bold">Mennyiség (db)</label>
+                <input asp-for="Quantity" type="number" min="1" class="form-control" value="1" />
+                <span asp-validation-for="Quantity" class="text-danger"></span>
+            </div> *@
 
             <div class="row mb-3">
                 <div class="col-md-6">

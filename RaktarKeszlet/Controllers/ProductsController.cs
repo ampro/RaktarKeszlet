@@ -37,11 +37,13 @@ public class ProductsController : Controller
     public async Task<IActionResult> Index(
       string? searchTerm,
       int? selectedCategoryId,
-      string? categoryName, // ÚJ: A Dashboardról érkezõ kattintás fogadása
-      int? selectedCompanyId,
-      int? selectedBuildingId,
+      string? categoryName,
+      int? selectedCompanyId,  // Ezt használja majd a Telephely kártya!
+      int? selectedBuildingId, // Ezt használja majd az Épület kártya!
+      int? roomId,             // ÚJ: Ezt fogja használni a Helyiség kártya
+      int? shelfId,            // ÚJ: Ezt fogja használni a Polc kártya
       int? selectedContainerId,
-      string? CompanyName, // ÚJ: A Dashboardról érkezõ kattintás fogadása
+      string? CompanyName,
       int page = 1)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -74,15 +76,24 @@ public class ProductsController : Controller
             productsQuery = productsQuery.Where(p => p.Company.Name == CompanyName);
         }
 
-        if (selectedCompanyId.HasValue) // Cég szûrése
+        // --- AZ ÚJ KÁRTYÁKRÓL ÉS A LEGÖRDÜLÕKBÕL ÉRKEZÕ SZÛRÉSEK ---
+
+        if (selectedCompanyId.HasValue)
             productsQuery = productsQuery.Where(p => p.CompanyId == selectedCompanyId.Value);
 
         if (selectedBuildingId.HasValue)
             productsQuery = productsQuery.Where(p => p.BuildingId == selectedBuildingId.Value);
 
+        if (roomId.HasValue) // ÚJ: Helyiség szûrés
+            productsQuery = productsQuery.Where(p => p.RoomId == roomId.Value);
+
+        if (shelfId.HasValue) // ÚJ: Polc szûrés
+            productsQuery = productsQuery.Where(p => p.ShelfId == shelfId.Value);
+
         if (selectedContainerId.HasValue)
             productsQuery = productsQuery.Where(p => p.StorageContainerId == selectedContainerId.Value);
 
+        // --- SZABADSZAVAS KERESÕ ---
         if (!string.IsNullOrEmpty(searchTerm))
         {
             productsQuery = productsQuery.Where(p =>
@@ -107,7 +118,7 @@ public class ProductsController : Controller
         var myBuildings = await _context.Buildings.Where(b => b.Company.UserId == currentUserId).ToListAsync();
         var myContainers = await _context.StorageContainers.Where(c => c.Company.UserId == currentUserId).ToListAsync();
 
-        // 5. ViewModel összeállítása (Változatlanul hagyva a te kódod alapján)
+        // 5. ViewModel összeállítása
         var viewModel = new ProductListViewModel
         {
             Products = pagedProducts,
@@ -289,24 +300,32 @@ public class ProductsController : Controller
             // Itt az uploadedPhotoUrl értéket már hozzárendelheted az új Product objektum PhotoUrl mezõjéhez!
 
             // --- 3. PRODUCT ENTITÁS ÖSSZEÁLLÍTÁSA A VIEWMODEL ALAPJÁN ---
-            var product = new Product
+
+            // Biztosítjuk, hogy legalább 1 db létrejöjjön, még ha 0-t vagy negatívot is adtak meg
+            int quantityToCreate = vm.Quantity > 0 ? vm.Quantity : 1;
+
+            for (int i = 0; i < quantityToCreate; i++)
             {
-                Name = vm.Name,
-                Price = vm.Price,
-                Barcode = vm.Barcode,
-                RCode = vm.RCode,
-                CategoryId = vm.CategoryId,
-                PhotoUrl = uploadedPhotoUrl,
+                var product = new Product
+                {
+                    Name = vm.Name,
+                    Price = vm.Price,
+                    Barcode = vm.Barcode,
+                    RCode = vm.RCode,
+                    CategoryId = vm.CategoryId,
+                    PhotoUrl = uploadedPhotoUrl,
 
-                // Hierarchia (Itt már a frissített, vagy a fentebb frissen létrehozott ID-k szerepelnek)
-                CompanyId = vm.CompanyId,
-                BuildingId = vm.BuildingId > 0 ? vm.BuildingId : null,
-                RoomId = vm.RoomId > 0 ? vm.RoomId : null,
-                ShelfId = vm.ShelfId > 0 ? vm.ShelfId : null,
-                StorageContainerId = vm.StorageContainerId > 0 ? vm.StorageContainerId : null
-            };
+                    // Hierarchia (Itt már a frissített, vagy a fentebb frissen létrehozott ID-k szerepelnek)
+                    CompanyId = vm.CompanyId,
+                    BuildingId = vm.BuildingId > 0 ? vm.BuildingId : null,
+                    RoomId = vm.RoomId > 0 ? vm.RoomId : null,
+                    ShelfId = vm.ShelfId > 0 ? vm.ShelfId : null,
+                    StorageContainerId = vm.StorageContainerId > 0 ? vm.StorageContainerId : null
+                };
+                _context.Add(product);
+            }
 
-            _context.Add(product);
+            
             await _context.SaveChangesAsync();
             // --- AZ UTOLSÓ KIVÁLASZTÁS MENTÉSE SÜTIBE (Pl. 30 napig érvényes) ---
             var cookieOptions = new CookieOptions { Expires = DateTime.Now.AddDays(30) };
