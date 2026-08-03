@@ -1,55 +1,72 @@
 @model IEnumerable<RaktarKeszlet.Models.Company>
 
 @{
-    ViewData["Title"] = "Telephelyek listája";
+    ViewData["Title"] = "Cégek és Telephelyek";
 }
 
-<!-- Fejléc és Új gomb -->
-<div class="d-flex justify-content-between align-items-center mb-4 mt-2">
-    <h2 class="fw-bold"><i class="bi bi-buildings me-2"></i>Telephelyek</h2>
-    <a asp-action="Create" class="btn btn-primary shadow-sm">
-        <i class="bi bi-plus-circle me-1"></i> Új telephely felvitele
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1"><i class="bi bi-briefcase text-dark"></i> Cégek és Telephelyek</h1>
+        <p class="text-muted mb-0">A fiókodhoz tartozó saját cégek és telephelyek kezelése.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-dark shadow-sm">
+        <i class="bi bi-plus-circle"></i> Új cég felvitele
     </a>
 </div>
 
-<!-- Kártyás elrendezésû lista -->
-<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-    @foreach (var item in Model)
-    {
-        <div class="col">
-            <!-- A teljes kártya kattintható és a Részletek (Details) oldalra visz -->
-            <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark">
-
-                <!-- Ugyanazt a 'product-card' CSS osztályt használjuk, amit a termékeknél megírtunk a hover effekthez -->
-                <div class="card h-100 shadow-sm border border-light-subtle product-card bg-white text-center">
-
-                    <!-- Látványos, nagyméretû ikon kép helyett -->
-                    <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
-                        <i class="bi bi-building text-primary" style="font-size: 3.5rem;"></i>
+@if (!Model.Any())
+{
+    <div class="alert alert-info shadow-sm rounded text-center py-4">
+        <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
+        Még nem rögzítettél egyetlen céget sem.
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var item in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0 transition-hover">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                        <h5 class="card-title mb-0 fw-bold">
+                            <i class="bi bi-briefcase me-2"></i>@item.Name
+                        </h5>
+                        <span class="badge bg-secondary fw-bold">Cég / Telephely</span>
                     </div>
 
-                    <div class="card-body d-flex flex-column pb-4">
-                        <!-- Telephely neve -->
-                        <h5 class="card-title fw-bold mb-3">@item.Name</h5>
+                    <div class="card-body">
+                        <p class="card-text text-secondary small">
+                            Ez a tárolási hierarchia legfelsõ szintje. Kattints a belépésre a céghez tartozó épületek kezeléséhez.
+                        </p>
+                    </div>
 
-                        <!-- Ide jöhetnek a további adatok a jövõben (pl. Cím), ha felveszed a modellbe -->
+                    <div class="card-footer bg-light border-top-0 d-flex justify-content-between align-items-center gap-1 py-3">
+                        <!-- LEFÚRÓS GOMB (Kártyás belépés a cégbe) -->
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-dark" title="Belépés a cégbe">
+                            <i class="bi bi-arrow-right-circle"></i> Belépés
+                        </a>
 
-                        <div class="mt-auto">
-                            <span class="badge bg-primary px-3 py-2 rounded-pill">Telephely</span>
+                        <div class="btn-group">
+                            <!-- ÚJ TERMÉK GOMB (Cég elõre beállítva) -->
+                            <a asp-controller="Products"
+                               asp-action="Create"
+                               asp-route-companyId="@item.Id"
+                               class="btn btn-sm btn-success"
+                               title="Termék hozzáadása ehhez a céghez">
+                                <i class="bi bi-plus-circle"></i> + Termék
+                            </a>
+
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Szerkesztés">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Törlés">
+                                <i class="bi bi-trash"></i>
+                            </a>
                         </div>
                     </div>
-
-                    <!-- Gyorsgombok a kártya alján (opcionális, ha az egeret fölé viszik) -->
-                    <div class="card-footer bg-light border-top-0 d-flex justify-content-between p-2">
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary w-50 me-1">
-                            <i class="bi bi-pencil"></i> Szerkesztés
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger w-50 ms-1">
-                            <i class="bi bi-trash"></i> Törlés
-                        </a>
-                    </div>
                 </div>
-            </a>
-        </div>
-    }
-</div>
+            </div>
+        }
+    </div>
+}

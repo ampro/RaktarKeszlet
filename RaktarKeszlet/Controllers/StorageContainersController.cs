@@ -24,11 +24,14 @@ public class StorageContainersController : Controller
         // Lekérjük a bejelentkezett felhasználó azonosítóját
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Lekérdezzük a tárolókat, és hozzácsatoljuk (.Include) a Polc és Cég adatokat is!
+        // Betöltjük a Cég, a Polc, valamint a Polchoz tartozó Helyiség és Épület adatait is
         var myContainers = _context.StorageContainers
-            .Include(s => s.Company) // Betöltjük a cég adatait
-            .Include(s => s.Shelf)   // EZ OLDJA MEG A HIBÁT: Betöltjük a polc adatait is!
+            .Include(s => s.Company)
+            .Include(s => s.Shelf)
+                .ThenInclude(sh => sh.Room)
+                    .ThenInclude(r => r.Building)
             .Where(s => s.Company.UserId == currentUserId);
+
 
         return View(await myContainers.ToListAsync());
     }
@@ -39,8 +42,12 @@ public class StorageContainersController : Controller
     {
         if (id == null) return NotFound();
 
+        // Behozzuk a Cég, a Polc, valamint a Polchoz tartozó Helyiség és Épület adatait is!
         var container = await _context.StorageContainers
+            .Include(s => s.Company)
             .Include(s => s.Shelf)
+                .ThenInclude(sh => sh.Room)
+                    .ThenInclude(r => r.Building)
             .FirstOrDefaultAsync(m => m.Id == id);
 
         if (container == null) return NotFound();
@@ -126,33 +133,57 @@ public class StorageContainersController : Controller
         return View(storageContainer);
     }
 
-    // GET: STORAGECONTAINERS/Edit/5
+    // GET: StorageContainers/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
-        ViewData["ShelfId"] = new SelectList(_context.Shelves, "Id", "Identifier");
-        if (id == null)
-        {
-            return NotFound();
-        }
+        if (id == null) return NotFound();
 
-        var storagecontainer = await _context.StorageContainers.FindAsync(id);
-        if (storagecontainer == null)
-        {
-            return NotFound();
-        }
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var storagecontainer = await _context.StorageContainers
+            .FirstOrDefaultAsync(s => s.Id == id && s.Company.UserId == currentUserId);
+
+        if (storagecontainer == null) return NotFound();
+
+        // 1. Típusok opciós listája (a projekttervben megadott kartondoboz, raklap, stb. alapján)
+        var containerTypes = new List<string> { "kartondoboz", "raklap", "mûanyag láda", "fém konténer", "egyéb" };
+        ViewBag.Types = new SelectList(containerTypes, storagecontainer.Type ?? "kartondoboz");
+
+        // 2. Polcok listája a bejelentkezett felhasználóhoz szûrve
+        var myShelves = await _context.Shelves
+            .Where(s => s.Room.Building.Company.UserId == currentUserId)
+            .ToListAsync();
+        ViewData["ShelfId"] = new SelectList(myShelves, "Id", "Identifier", storagecontainer.ShelfId);
+
         return View(storagecontainer);
     }
 
-    // POST: STORAGECONTAINERS/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    // POST: StorageContainers/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? id, [Bind("Id,Name,Type,ShelfId,Shelf,Products")] StorageContainer storagecontainer)
+    public async Task<IActionResult> Edit(int id, StorageContainer storagecontainer, string? CustomType)
     {
-        if (id != storagecontainer.Id)
+        // Ha az "Új típus megadása..." opciót választották ki, a beírt szöveget mentjük el
+        if (storagecontainer.Type == "NEW_TYPE" && !string.IsNullOrWhiteSpace(CustomType))
         {
-            return NotFound();
+            storagecontainer.Type = CustomType.Trim();
+        }
+        if (id != storagecontainer.Id) return NotFound();
+
+        ModelState.Remove("Company");
+        ModelState.Remove("Shelf");
+        ModelState.Remove("Products");
+
+        // Biztonsági fék a CompanyId megõrzésére
+        if (storagecontainer.CompanyId == 0)
+        {
+            var existingContainer = await _context.StorageContainers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (existingContainer != null)
+            {
+                storagecontainer.CompanyId = existingContainer.CompanyId;
+            }
         }
 
         if (ModelState.IsValid)
@@ -161,20 +192,25 @@ public class StorageContainersController : Controller
             {
                 _context.Update(storagecontainer);
                 await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!StorageContainerExists(storagecontainer.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                if (!StorageContainerExists(storagecontainer.Id)) return NotFound();
+                else throw;
             }
-            return RedirectToAction(nameof(Index));
         }
+
+        // Hiba esetén a listák újratöltése
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var containerTypes = new List<string> { "kartondoboz", "raklap", "mûanyag láda", "fém konténer", "egyéb" };
+        ViewBag.Types = new SelectList(containerTypes, storagecontainer.Type);
+
+        var myShelves = await _context.Shelves
+            .Where(s => s.Room.Building.Company.UserId == currentUserId)
+            .ToListAsync();
+        ViewData["ShelfId"] = new SelectList(myShelves, "Id", "Identifier", storagecontainer.ShelfId);
+
         return View(storagecontainer);
     }
 

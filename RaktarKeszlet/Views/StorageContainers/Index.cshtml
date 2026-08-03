@@ -51,6 +51,20 @@
                             }
                         </td>
                         <td class="text-end">
+                            <!-- ÚJ: Termék hozzáadása gomb a tárolóeszköz elõre kitöltött adataival -->
+                            <a asp-controller="Products"
+                               asp-action="Create"
+                               asp-route-companyId="@item.CompanyId"
+                               asp-route-buildingId="@item.Shelf?.Room?.BuildingId"
+                               asp-route-roomId="@item.Shelf?.RoomId"
+                               asp-route-shelfId="@item.ShelfId"
+                               asp-route-storageContainerId="@item.Id"
+                               class="btn btn-sm btn-success me-1"
+                               title="Termék hozzáadása ebbe a tárolóba">
+                                <i class="bi bi-plus-circle"></i> + Termék
+                            </a>
+
+
                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
                             <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
                             <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>

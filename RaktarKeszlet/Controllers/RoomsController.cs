@@ -20,10 +20,15 @@ public class RoomsController : Controller
     // GET: Rooms
     public async Task<IActionResult> Index()
     {
-        // Az Include parancs mondja meg az adatbázisnak, hogy a helyiséggel együtt hozza el a Building adatait is
-        var roomsWithBuildings = _context.Rooms.Include(r => r.Building);
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        return View(await roomsWithBuildings.ToListAsync());
+        // Betöltjük a Helyiséghez tartozó Épületet és Céget is
+        var myRooms = _context.Rooms
+            .Include(r => r.Building)
+                .ThenInclude(b => b.Company)
+            .Where(r => r.Building.Company.UserId == currentUserId);
+
+        return View(await myRooms.ToListAsync());
     }
 
     // GET: Rooms/Details/5

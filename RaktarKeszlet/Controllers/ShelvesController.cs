@@ -25,9 +25,14 @@ public class ShelvesController : Controller
         // Az Include parancs mondja meg az adatbázisnak, hogy a polccal együtt hozza el a Room adatait is
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+        // Betöltjük a Polchoz tartozó Helyiséget, Épületet és Céget is
         var myShelves = _context.Shelves
             .Include(s => s.Room)
+                .ThenInclude(r => r.Building)
+                    .ThenInclude(b => b.Company)
             .Where(s => s.Room.Building.Company.UserId == currentUserId);
+
+        return View(await myShelves.ToListAsync());
 
         return View(await myShelves.ToListAsync());
     }

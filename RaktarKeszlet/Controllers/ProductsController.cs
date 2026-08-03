@@ -294,8 +294,32 @@ public class ProductsController : Controller
             string uploadedPhotoUrl = null;
             if (vm.Photo != null)
             {
-                // A képet a wwwroot/images/products mappába mentjük
-                uploadedPhotoUrl = await _fileUploadService.UploadFileAsync(vm.Photo, "products");
+                // Felhasználó és szintnevek lekérése az adatbázisból a mappastruktúrához
+                string userName = User.Identity.Name ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+                string company = vm.CompanyId > 0 ? (await _context.Companies.FindAsync(vm.CompanyId))?.Name : null;
+                string building = vm.BuildingId > 0 ? (await _context.Buildings.FindAsync(vm.BuildingId))?.Name : null;
+                string room = vm.RoomId > 0 ? (await _context.Rooms.FindAsync(vm.RoomId))?.Name : null;
+                string shelf = vm.ShelfId > 0 ? (await _context.Shelves.FindAsync(vm.ShelfId))?.Identifier : null;
+                string container = vm.StorageContainerId > 0 ? (await _context.StorageContainers.FindAsync(vm.StorageContainerId))?.Name : null;
+
+                string SafeName(string input)
+                {
+                    if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+                    var invalidChars = Path.GetInvalidFileNameChars();
+                    return new string(input.Select(c => invalidChars.Contains(c) ? '_' : c).ToArray());
+                }
+
+                var pathParts = new List<string> { SafeName(userName) };
+                if (!string.IsNullOrEmpty(company)) pathParts.Add(SafeName(company));
+                if (!string.IsNullOrEmpty(building)) pathParts.Add(SafeName(building));
+                if (!string.IsNullOrEmpty(room)) pathParts.Add(SafeName(room));
+                if (!string.IsNullOrEmpty(shelf)) pathParts.Add(SafeName(shelf));
+                if (!string.IsNullOrEmpty(container)) pathParts.Add(SafeName(container));
+
+                string dynamicSubFolder = string.Join("/", pathParts);
+
+                // Kép mentése a dinamikusan felépített útvonalra
+                uploadedPhotoUrl = await _fileUploadService.UploadFileAsync(vm.Photo, dynamicSubFolder);
             }
             // Itt az uploadedPhotoUrl értéket már hozzárendelheted az új Product objektum PhotoUrl mezõjéhez!
 
@@ -306,7 +330,8 @@ public class ProductsController : Controller
 
             for (int i = 0; i < quantityToCreate; i++)
             {
-                var product = new Product
+                // JAVÍTVA: var product helyett típusbiztos példányosítás
+                Product newProduct = new Product
                 {
                     Name = vm.Name,
                     Price = vm.Price,
@@ -314,15 +339,15 @@ public class ProductsController : Controller
                     RCode = vm.RCode,
                     CategoryId = vm.CategoryId,
                     PhotoUrl = uploadedPhotoUrl,
-
-                    // Hierarchia (Itt már a frissített, vagy a fentebb frissen létrehozott ID-k szerepelnek)
                     CompanyId = vm.CompanyId,
                     BuildingId = vm.BuildingId > 0 ? vm.BuildingId : null,
                     RoomId = vm.RoomId > 0 ? vm.RoomId : null,
                     ShelfId = vm.ShelfId > 0 ? vm.ShelfId : null,
                     StorageContainerId = vm.StorageContainerId > 0 ? vm.StorageContainerId : null
                 };
-                _context.Add(product);
+
+                // JAVÍTVA: _context.Products.Add használata a "target type" hiba elkerülésére
+                _context.Products.Add(newProduct);
             }
 
             
@@ -447,25 +472,47 @@ public class ProductsController : Controller
             _context.TransactionLogs.Add(log);
 
             // 3. KÉPFELTÖLTÉS ÉS CSERE KEZELÉSE (Az eredeti kódod alapján)
-            // 3. KÉPFELTÖLTÉS ÉS CSERE KEZELÉSE (Javítva: FileUploadService használatával)
+            // 3. KÉPFELTÖLTÉS ÉS CSERE KEZELÉSE (Dinamikus mappastruktúrával)
             if (vm.Photo != null)
             {
-                // Új kép mentése az általunk írt szolgáltatáson keresztül (ez végzi a 800px-es SkiaSharp átméretezést!)
-                string uploadedPhotoUrl = await _fileUploadService.UploadFileAsync(vm.Photo, "products");
+                // Szintnevek és felhasználó lekérése a dinamikus útvonalhoz
+                string userName = User.Identity.Name ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+                string company = vm.CompanyId > 0 ? (await _context.Companies.FindAsync(vm.CompanyId))?.Name : null;
+                string building = vm.BuildingId > 0 ? (await _context.Buildings.FindAsync(vm.BuildingId))?.Name : null;
+                string room = vm.RoomId > 0 ? (await _context.Rooms.FindAsync(vm.RoomId))?.Name : null;
+                string shelf = vm.ShelfId > 0 ? (await _context.Shelves.FindAsync(vm.ShelfId))?.Identifier : null;
+                string container = vm.StorageContainerId > 0 ? (await _context.StorageContainers.FindAsync(vm.StorageContainerId))?.Name : null;
 
-                // Régi kép törlése a szerverrõl, ha volt ilyen
+                string SafeName(string input)
+                {
+                    if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+                    var invalidChars = Path.GetInvalidFileNameChars();
+                    return new string(input.Select(c => invalidChars.Contains(c) ? '_' : c).ToArray());
+                }
+
+                var pathParts = new List<string> { SafeName(userName) };
+                if (!string.IsNullOrEmpty(company)) pathParts.Add(SafeName(company));
+                if (!string.IsNullOrEmpty(building)) pathParts.Add(SafeName(building));
+                if (!string.IsNullOrEmpty(room)) pathParts.Add(SafeName(room));
+                if (!string.IsNullOrEmpty(shelf)) pathParts.Add(SafeName(shelf));
+                if (!string.IsNullOrEmpty(container)) pathParts.Add(SafeName(container));
+
+                string dynamicSubFolder = string.Join("/", pathParts);
+
+                // Kép mentése
+                string uploadedPhotoUrl = await _fileUploadService.UploadFileAsync(vm.Photo, dynamicSubFolder);
+
+                // Régi kép törlése a szerverrõl
                 if (!string.IsNullOrEmpty(product.PhotoUrl))
                 {
-                    // Mivel a PhotoUrl most már "products/fajlnev.jpg" formátumban van, az "images" mappához fûzzük hozzá
                     string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "images", product.PhotoUrl.TrimStart('/'));
-
                     if (System.IO.File.Exists(oldFilePath))
                     {
                         System.IO.File.Delete(oldFilePath);
                     }
                 }
 
-                // Az adatbázis URL frissítése az új (már lekicsinyített) fájlra
+                // URL frissítése az adatbázisban
                 product.PhotoUrl = uploadedPhotoUrl;
             }
 

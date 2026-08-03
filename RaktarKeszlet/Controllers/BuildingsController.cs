@@ -21,9 +21,14 @@ public class BuildingsController : Controller
     // GET: BUILDINGS
     public async Task<IActionResult> Index()    
     {
-        // Az Include tölti be a kapcsolódó cég adatait!
-        var applicationDbContext = _context.Buildings.Include(b => b.Company);
-        return View(await applicationDbContext.ToListAsync());
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Betöltjük az épülethez tartozó Cég adatait is
+        var myBuildings = _context.Buildings
+            .Include(b => b.Company)
+            .Where(b => b.Company.UserId == currentUserId);
+
+        return View(await myBuildings.ToListAsync());
     }
 
     // GET: Buildings/Details/5

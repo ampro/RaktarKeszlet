@@ -4,55 +4,82 @@
     ViewData["Title"] = "Raktárhelyiségek";
 }
 
-<h1>Raktárhelyiségek</h1>
-<p class="text-muted">Itt kezelheted a raktárépületeken belüli fizikai helyiségeket (pl. hûtõkamra, földszinti raktár).</p>
-
-<p>
-    <a asp-action="Create" class="btn btn-success shadow-sm">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1"><i class="bi bi-door-open text-primary"></i> Raktárhelyiségek</h1>
+        <p class="text-muted mb-0">Itt láthatod a raktárépületeken belüli helyiségeket.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
         <i class="bi bi-plus-circle"></i> Új helyiség felvitele
     </a>
-</p>
-
-<div class="table-responsive shadow-sm rounded">
-    <table class="table table-striped table-hover align-middle mb-0">
-        <thead class="table-dark">
-            <tr>
-                <th>Helyiség neve</th>
-                <th>Melyik Épületben található?</th>
-                <th class="text-end">Mûveletek</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (!Model.Any())
-            {
-                <tr>
-                    <td colspan="3" class="text-center text-muted py-4">Még nem rögzítettél egyetlen helyiséget sem.</td>
-                </tr>
-            }
-            else
-            {
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td class="fw-bold fs-5">@item.Name</td>
-                        <td>
-                            @if (item.Building != null)
-                            {
-                                <span class="badge bg-primary fs-6">@item.Building.Name</span>
-                            }
-                            else
-                            {
-                                <span class="text-danger">Nincs épülethez rendelve</span>
-                            }
-                        </td>
-                        <td class="text-end">
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>
-                        </td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
 </div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info shadow-sm rounded text-center py-4">
+        <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
+        Még nem rögzítettél egyetlen helyiséget sem.
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var item in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0 transition-hover">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                        <h5 class="card-title mb-0 fw-bold">
+                            <i class="bi bi-door-closed me-2"></i>@item.Name
+                        </h5>
+                        <span class="badge bg-light text-primary fw-bold">Helyiség</span>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- HIERARCHIA HELYSZÍN ADATOK -->
+                        <div class="mb-2 text-muted small">
+                            <i class="bi bi-building"></i> <strong>Épület:</strong>
+                            @(item.Building?.Name ?? "Nincs épülethez rendelve")
+                        </div>
+                        <div class="mb-3 text-muted small">
+                            <i class="bi bi-briefcase"></i> <strong>Cég / Telephely:</strong>
+                            @(item.Building?.Company?.Name ?? "Nincs céghez rendelve")
+                        </div>
+
+                        <!-- LELÉPÕ / LEFÚRÓS INFORMÁCIÓ -->
+                        <p class="card-text text-secondary small">
+                            Kattints a belépésre a helyiségben található polcok és tárolóeszközök megtekintéséhez.
+                        </p>
+                    </div>
+
+                    <div class="card-footer bg-light border-top-0 d-flex justify-content-between align-items-center gap-1 py-3">
+                        <!-- LEFÚRÓS GOMB (Kártyás belépés) -->
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Belépés a helyiségbe">
+                            <i class="bi bi-arrow-right-circle"></i> Belépés
+                        </a>
+
+                        <div class="btn-group">
+                            <!-- ÚJ TERMÉK GOMB (Elõre kitöltött adatokkal) -->
+                            <a asp-controller="Products"
+                               asp-action="Create"
+                               asp-route-companyId="@item.Building?.CompanyId"
+                               asp-route-buildingId="@item.BuildingId"
+                               asp-route-roomId="@item.Id"
+                               class="btn btn-sm btn-success"
+                               title="Termék hozzáadása ebbe a helyiségbe">
+                                <i class="bi bi-plus-circle"></i> + Termék
+                            </a>
+
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Szerkesztés">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Törlés">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

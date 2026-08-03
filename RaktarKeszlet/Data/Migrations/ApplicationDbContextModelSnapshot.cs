@@ -252,7 +252,7 @@ namespace RaktarKeszlet.Data.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("Buildings");
+                    b.ToTable("Buildings", (string)null);
                 });
 
             modelBuilder.Entity("RaktarKeszlet.Models.Category", b =>
@@ -269,7 +269,7 @@ namespace RaktarKeszlet.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("RaktarKeszlet.Models.Company", b =>
@@ -292,7 +292,7 @@ namespace RaktarKeszlet.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Companies");
+                    b.ToTable("Companies", (string)null);
                 });
 
             modelBuilder.Entity("RaktarKeszlet.Models.Product", b =>
@@ -361,7 +361,7 @@ namespace RaktarKeszlet.Data.Migrations
 
                     b.HasIndex("StorageContainerId1");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("RaktarKeszlet.Models.Room", b =>
@@ -383,7 +383,7 @@ namespace RaktarKeszlet.Data.Migrations
 
                     b.HasIndex("BuildingId");
 
-                    b.ToTable("Rooms");
+                    b.ToTable("Rooms", (string)null);
                 });
 
             modelBuilder.Entity("RaktarKeszlet.Models.Shelf", b =>
@@ -405,7 +405,7 @@ namespace RaktarKeszlet.Data.Migrations
 
                     b.HasIndex("RoomId");
 
-                    b.ToTable("Shelves");
+                    b.ToTable("Shelves", (string)null);
                 });
 
             modelBuilder.Entity("RaktarKeszlet.Models.StorageContainer", b =>
@@ -435,7 +435,7 @@ namespace RaktarKeszlet.Data.Migrations
 
                     b.HasIndex("ShelfId");
 
-                    b.ToTable("StorageContainers");
+                    b.ToTable("StorageContainers", (string)null);
                 });
 
             modelBuilder.Entity("RaktarKeszlet.Models.TransactionLog", b =>
@@ -476,7 +476,7 @@ namespace RaktarKeszlet.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TransactionLogs");
+                    b.ToTable("TransactionLogs", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

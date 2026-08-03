@@ -36,6 +36,8 @@
     </div>
 </div>
 
+
+
 <h4 class="mb-3 text-secondary"><i class="bi bi-box-seam"></i> A tárolóban található termékek</h4>
 
 <!-- RÉSZNÉZET BEHÍVÁSA: Termékek táblázata -->
@@ -46,4 +48,19 @@
 
 <div class="mt-4">
     <a asp-action="Index" class="btn btn-outline-secondary">Vissza a listához</a>
+
+    <!-- Új termék hozzáadása gomb a tárolóeszköz hierarchiájának elõre beállított értékeivel -->
+    <a asp-controller="Products"
+       asp-action="Create"
+       asp-route-companyId="@Model.Container.CompanyId"
+       asp-route-buildingId="@Model.Container.Shelf?.Room?.BuildingId"
+       asp-route-roomId="@Model.Container.Shelf?.RoomId"
+       asp-route-shelfId="@Model.Container.ShelfId"
+       asp-route-storageContainerId="@Model.Container.Id"
+       class="btn btn-success shadow-sm me-2">
+        <i class="bi bi-plus-circle"></i> Termék hozzáadása ebbe a tárolóba
+    </a>
+
 </div>
+
+
