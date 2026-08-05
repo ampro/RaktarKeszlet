@@ -13,140 +13,147 @@
 }
 
 <form asp-action="Move" method="post">
-    <div class="row">
-        <!-- BAL OSZLOP: Doboz kiválasztása -->
-        <div class="col-md-5 mb-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="bi bi-box"></i> Mit szeretnél mozgatni?</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Tárolóeszköz kiválasztása <span class="text-danger">*</span></label>
-                        <select asp-for="SelectedContainerId" class="form-select border-primary" required>
-                            <option value="">-- Válassz dobozt vagy raklapot --</option>
-                            @foreach (var c in ViewBag.Containers)
-                            {
-                                <option value="@c.Id">@c.Name (@c.Type)</option>
-                            }
-                        </select>
-                        <span asp-validation-for="SelectedContainerId" class="text-danger"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-        <!-- JOBB OSZLOP: Új célállomás (Mély-szűrővel) -->
-        <div class="col-md-7 mb-4">
-            <div class="card shadow-sm border-primary h-100">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-geo-alt-fill"></i> Hová szeretnéd tenni?</h5>
-                </div>
-                <div class="card-body bg-light">
+    <!-- 1. TÁROLÓESZKÖZ KIVÁLASZTÁSA -->
+    <div class="form-group mb-4">
+        <label asp-for="SelectedContainerId" class="control-label fw-bold text-dark mb-1">Mozgatni kívánt tárolóeszköz *</label>
+        <select asp-for="SelectedContainerId" class="form-select border-primary" required>
+            <option value="">-- Válassz ki egy dobozt / raklapot... --</option>
+            @foreach (var c in ViewBag.Containers)
+            {
+                <option value="@c.Id">@c.Name (@c.Type)</option>
+            }
+        </select>
+        <span asp-validation-for="SelectedContainerId" class="text-danger"></span>
+    </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Cél Cég / Tulajdonos <span class="text-danger">*</span></label>
-                        <select asp-for="TargetCompanyId" id="selCompany" class="form-select" required>
-                            <option value="">-- Válassz céget --</option>
-                            @foreach (var c in ViewBag.Companies)
-                            {
-                                <option value="@c.Id">@c.Name</option>
-                            }
-                        </select>
-                    </div>
+    <hr class="text-muted" />
+    <h5 class="text-secondary fw-bold mb-3"><i class="bi bi-geo-alt"></i> Célállomás koordinátái</h5>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Cél Raktárépület</label>
-                        <select asp-for="TargetBuildingId" id="selBuilding" class="form-select">
-                            <option value="">-- Közvetlenül a cégnél (udvaron) --</option>
-                            @foreach (var b in ViewBag.Buildings)
-                            {
-                                <option value="@b.Id" data-parent="@b.CompanyId">@b.Name</option>
-                            }
-                        </select>
-                    </div>
+    <!-- 2. CÉL CÉG / TELEPHELY (ViewModel érték alapján automatikusan kiválasztva) -->
+    <div class="form-group mb-3">
+        <label asp-for="TargetCompanyId" class="control-label fw-bold small text-muted">1. Cég / Telephely *</label>
+        <select asp-for="TargetCompanyId" id="selCompany" class="form-select" required onchange="filterBuildings(false)">
+            <option value="">-- Válassz céltelephelyet... --</option>
+            @foreach (var comp in ViewBag.Companies)
+            {
+                <option value="@comp.Id">@comp.Name</option>
+            }
+        </select>
+        <span asp-validation-for="TargetCompanyId" class="text-danger"></span>
+    </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Cél Helyiség</label>
-                        <select asp-for="TargetRoomId" id="selRoom" class="form-select">
-                            <option value="">-- Nincs külön helyiség --</option>
-                            @foreach (var r in ViewBag.Rooms)
-                            {
-                                <option value="@r.Id" data-parent="@r.BuildingId">@r.Name</option>
-                            }
-                        </select>
-                    </div>
+    <!-- 3. CÉL ÉPÜLET -->
+    <div class="form-group mb-3">
+        <label asp-for="TargetBuildingId" class="control-label fw-bold small text-muted">2. Raktárépület (Opcionális)</label>
+        <select asp-for="TargetBuildingId" id="selBuilding" class="form-select" onchange="filterRooms(false)">
+            <option value="">-- Szabadon álló a telephelyen --</option>
+            @foreach (var b in ViewBag.Buildings)
+            {
+                <option value="@b.Id" data-company="@b.CompanyId">@b.Name</option>
+            }
+        </select>
+    </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Cél Polc / Sor</label>
-                        <select asp-for="TargetShelfId" id="selShelf" class="form-select">
-                            <option value="">-- Nincs polcon --</option>
-                            @foreach (var s in ViewBag.Shelves)
-                            {
-                                <option value="@s.Id" data-parent="@s.RoomId">@s.Identifier</option>
-                            }
-                        </select>
-                    </div>
+    <!-- 4. CÉL HELYISÉG -->
+    <div class="form-group mb-3">
+        <label asp-for="TargetRoomId" class="control-label fw-bold small text-muted">3. Raktárhelyiség / Terem (Opcionális)</label>
+        <select asp-for="TargetRoomId" id="selRoom" class="form-select" onchange="filterShelves(false)">
+            <option value="">-- Szabadon álló az épületben --</option>
+            @foreach (var r in ViewBag.Rooms)
+            {
+                <option value="@r.Id" data-building="@r.BuildingId">@r.Name</option>
+            }
+        </select>
+    </div>
 
-                </div>
-                <div class="card-footer bg-white border-top-0 pt-3 pb-3 text-end">
-                    <a asp-action="Index" class="btn btn-outline-secondary">Mégse</a>
-                    <button type="submit" class="btn btn-success ms-2"><i class="bi bi-arrows-move"></i> Doboz és termékek átmozgatása</button>
-                </div>
-            </div>
-        </div>
+    <!-- 5. CÉL POLC -->
+    <div class="form-group mb-4">
+        <label asp-for="TargetShelfId" class="control-label fw-bold small text-muted">4. Polc / Sor azonosító (Opcionális)</label>
+        <select asp-for="TargetShelfId" id="selShelf" class="form-select">
+            <option value="">-- Szabadon álló a teremben --</option>
+            @foreach (var s in ViewBag.Shelves)
+            {
+                <option value="@s.Id" data-room="@s.RoomId">@s.Identifier</option>
+            }
+        </select>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle"></i> Mégse
+        </a>
+        <button type="submit" class="btn btn-dark px-4 shadow-sm">
+            <i class="bi bi-arrow-left-right"></i> Tároló és termékek átmozgatása
+        </button>
     </div>
 </form>
 
-@section Scripts {
-    <script>
-        // A jól bevált Mély-szűrő (Deep-Filter) logika a célállomáshoz
-        var originalOptions = {};
-        function applyDeepFilter() {
-            var compVal = document.getElementById('selCompany').value;
-            var bldgVal = document.getElementById('selBuilding').value;
-            var roomVal = document.getElementById('selRoom').value;
+<!-- OKOS LÉPCSŐZETES JAVASCRIPT SZŰRÉS -->
+<script>
+    function filterBuildings(isInitial) {
+        var compId = document.getElementById("selCompany").value;
+        var buildingSelect = document.getElementById("selBuilding");
+        var options = buildingSelect.options;
 
-            function filterLevel(targetId, validParentIds, parentVal) {
-                var targetSelect = document.getElementById(targetId);
-                if (!targetSelect) return null;
-                var prevValue = targetSelect.value;
-                targetSelect.innerHTML = "";
-                var nextValidIds = [];
-
-                originalOptions[targetId].forEach(function(opt) {
-                    var parentId = opt.getAttribute("data-parent") || "";
-                    var isValid = false;
-
-                    if (opt.value === "") isValid = true;
-                    else if (parentVal !== "") isValid = (parentId === parentVal);
-                    else if (validParentIds !== null) isValid = validParentIds.includes(parentId);
-                    else isValid = true;
-
-                    if (isValid) {
-                        targetSelect.appendChild(opt.cloneNode(true));
-                        if (opt.value !== "") nextValidIds.push(opt.value);
-                    }
-                });
-
-                targetSelect.value = Array.from(targetSelect.options).some(o => o.value === prevValue) ? prevValue : "";
-                return parentVal !== "" ? nextValidIds : (validParentIds === null ? null : nextValidIds);
-            }
-
-            var validBldgs = filterLevel('selBuilding', null, compVal);
-            var validRooms = filterLevel('selRoom', validBldgs, bldgVal);
-            filterLevel('selShelf', validRooms, roomVal);
+        // Csak akkor ürítjük ki a kijelölést, ha nem az első (szerveroldali) betöltés fut
+        if (!isInitial) {
+            buildingSelect.value = "";
         }
 
-        window.addEventListener('load', function() {
-            ['selBuilding', 'selRoom', 'selShelf'].forEach(function(id) {
-                var sel = document.getElementById(id);
-                if (sel) originalOptions[id] = Array.from(sel.options).map(opt => opt.cloneNode(true));
-            });
-            ['selCompany', 'selBuilding', 'selRoom'].forEach(function(id) {
-                document.getElementById(id).addEventListener('change', applyDeepFilter);
-            });
-            applyDeepFilter();
-        });
-    </script>
-}
+        for (var i = 1; i < options.length; i++) {
+            var opt = options[i];
+            if (opt.getAttribute("data-company") === compId || compId === "") {
+                opt.style.display = "block";
+            } else {
+                opt.style.display = "none";
+            }
+        }
+        filterRooms(isInitial);
+    }
+
+    function filterRooms(isInitial) {
+        var buildId = document.getElementById("selBuilding").value;
+        var roomSelect = document.getElementById("selRoom");
+        var options = roomSelect.options;
+
+        if (!isInitial) {
+            roomSelect.value = "";
+        }
+
+        for (var i = 1; i < options.length; i++) {
+            var opt = options[i];
+            if (opt.getAttribute("data-building") === buildId || buildId === "") {
+                opt.style.display = "block";
+            } else {
+                opt.style.display = "none";
+            }
+        }
+        filterShelves(isInitial);
+    }
+
+    function filterShelves(isInitial) {
+        var roomId = document.getElementById("selRoom").value;
+        var shelfSelect = document.getElementById("selShelf");
+        var options = shelfSelect.options;
+
+        if (!isInitial) {
+            shelfSelect.value = "";
+        }
+
+        for (var i = 1; i < options.length; i++) {
+            var opt = options[i];
+            if (opt.getAttribute("data-room") === roomId || roomId === "") {
+                opt.style.display = "block";
+            } else {
+                opt.style.display = "none";
+            }
+        }
+    }
+
+    // Amikor az oldal betöltődik, TRUE paraméterrel indítjuk, hogy megmaradjanak a behozott adatok!
+    window.onload = function() {
+        filterBuildings(true);
+    };
+</script>

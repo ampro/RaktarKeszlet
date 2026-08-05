@@ -133,6 +133,14 @@ else
                                 <i class="bi bi-plus-circle"></i> + Termék
                             </a>
 
+                            <!-- ÚJ: Átmozgatás gomb a tároló azonosítójának átadásával -->
+                            <a asp-action="Move"
+                               asp-route-containerId="@item.Id"
+                               class="btn btn-sm btn-outline-dark fw-bold"
+                               title="Tárolóeszköz és termékei átmozgatása">
+                                <i class="bi bi-arrows-move"></i> Mozgatás
+                            </a>
+
                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Szerkesztés">
                                 <i class="bi bi-pencil"></i>
                             </a>
@@ -153,90 +161,3 @@ else
         color: #198754 !important; /* Szép zöld színû kiemelés hoverkor */
     }
 </style>
-
-
-
-
-
-
-
-
-
-@* @model IEnumerable<RaktarKeszlet.Models.StorageContainer>
-
-@{
-    ViewData["Title"] = "Tárolóeszközök";
-}
-
-<h1>Tárolóeszközök</h1>
-<p class="text-muted">Itt kezelheted a polcokon lévõ dobozokat, raklapokat és rekeszeket.</p>
-
-<p>
-    <a asp-action="Create" class="btn btn-success shadow-sm">
-        <i class="bi bi-plus-circle"></i> Új tárolóeszköz felvitele
-    </a>
-</p>
-
-<div class="table-responsive shadow-sm rounded">
-    <table class="table table-striped table-hover align-middle mb-0">
-        <thead class="table-dark">
-            <tr>
-                <th>Eszköz neve / Azonosítója</th>
-                <th>Típus</th>
-                <th>Melyik Polcon/Soron van?</th>
-                <th class="text-end">Mûveletek</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (!Model.Any())
-            {
-                <tr>
-                    <td colspan="4" class="text-center text-muted py-4">Még nem rögzítettél egyetlen tárolóeszközt sem.</td>
-                </tr>
-            }
-            else
-            {
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td class="fw-bold fs-5">@item.Name</td>
-                        <td>
-                            <span class="badge bg-secondary fs-6">@item.Type</span>
-                        </td>
-                        <td>
-                            @if (item.Shelf != null)
-                            {
-                                <!-- Itt az Identifier mezõre hivatkozunk, amit a polcoknál használsz! -->
-                                <span class="badge bg-success fs-6">@item.Shelf.Identifier</span>
-                            }
-                            else
-                            {
-                                <span class="text-danger">Nincs polchoz rendelve</span>
-                            }
-                        </td>
-                        <td class="text-end">
-                            <!-- ÚJ: Termék hozzáadása gomb a tárolóeszköz elõre kitöltött adataival -->
-                            <a asp-controller="Products"
-                               asp-action="Create"
-                               asp-route-companyId="@item.CompanyId"
-                               asp-route-buildingId="@item.Shelf?.Room?.BuildingId"
-                               asp-route-roomId="@item.Shelf?.RoomId"
-                               asp-route-shelfId="@item.ShelfId"
-                               asp-route-storageContainerId="@item.Id"
-                               class="btn btn-sm btn-success me-1"
-                               title="Termék hozzáadása ebbe a tárolóba">
-                                <i class="bi bi-plus-circle"></i> + Termék
-                            </a>
-
-
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>
-                        </td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
-</div> *@
-
