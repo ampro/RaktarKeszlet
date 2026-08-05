@@ -1,101 +1,118 @@
 ﻿@model RaktarKeszlet.ViewModels.DashboardViewModel
 @{
-    ViewData["Title"] = "Főoldal - Készletjelentés";
+    ViewData["Title"] = "Üdvözlünk a RaktárKészletben";
 }
 
-<div class="text-center mb-5">
-    <h1 class="display-4 fw-bold text-primary">Raktár & Készletnyilvántartás</h1>
-    <p class="lead text-muted">Vezérlőpult és összesített készletérték jelentés</p>
+<!-- HERO / ÜDVÖZLŐ SZEKCIÓ -->
+<div class="row align-items-center g-5 py-5 mb-5 bg-white rounded shadow-sm px-4">
+    <div class="col-lg-6">
+        <h1 class="display-4 fw-bold lh-1 text-dark mb-3">
+            <i class="bi bi-box-seam text-warning me-2"></i>RaktárKészlet
+        </h1>
+        <p class="lead text-secondary mb-4">
+            Üdvözlünk a <strong>holmijaim.hu</strong> felhőalapú, rendkívül gyors és biztonságos raktár- és készletnyilvántartó szoftverében!
+            Teremts rendet a káoszban, és kövesd nyomon eszközeid pontos fizikai helyzetét valós időben.
+        </p>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-warning btn-lg px-4 me-md-2 fw-bold shadow-sm">
+                <i class="bi bi-person-plus-fill"></i> Ingyenes regisztráció
+            </a>
+            <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-dark btn-lg px-4 shadow-sm">
+                <i class="bi bi-box-arrow-in-right"></i> Bejelentkezés
+            </a>
+        </div>
+    </div>
+    <div class="col-10 col-sm-8 col-lg-6">
+        <img src="/images/welcome_screen_illustration.jpg" class="d-block mx-lg-auto img-fluid rounded shadow-sm border border-light" alt="RaktárKészlet illusztráció" width="700" height="500" loading="lazy">
+    </div>
 </div>
 
-@if (!User.Identity.IsAuthenticated)
-{
-    <div class="alert alert-warning text-center shadow-sm">
-        <h4>Kérlek, jelentkezz be a raktárad adatainak megtekintéséhez!</h4>
-        <p class="mb-0">Használhatod az e-mail címedet vagy a Google fiókodat is a belépéshez.</p>
-    </div>
-}
-else
-{
-    <!-- FŐ AGGREGÁTUMOK -->
-    <div class="row mb-4">
-        <div class="col-md-6 mb-3">
-            <div class="card bg-success text-white shadow h-100 border-0 rounded-3">
-                <div class="card-body text-center p-4">
-                    <h5 class="card-title text-uppercase text-white-50 fw-bold mb-3"><i class="bi bi-cash-stack"></i> Teljes Készletérték</h5>
-                    <h1 class="display-5 fw-bold mb-0">@Model.TotalValue.ToString("N0") Ft</h1>
-                </div>
+<!-- FUNKCIÓK BEMUTATÁSA -->
+<div class="container py-4">
+    <h2 class="pb-2 border-bottom fw-bold text-center mb-5"><i class="bi bi-star-fill text-warning me-2"></i>Kiemelt funkcióink</h2>
+
+    <!-- 1. FUNKCIÓ: 5-SZINTŰ HIERARCHIA -->
+    <div class="row row-cols-1 row-cols-lg-2 align-items-center g-5 py-4 my-2">
+        <div class="col order-lg-2">
+            <h3 class="fw-bold text-dark mb-3"><i class="bi bi-diagram-3-fill text-info me-2"></i>5-szintű Raktárhierarchia</h3>
+            <p class="text-secondary fs-5">
+                Rendszerezd az eszközeidet a fizikai valóságnak megfelelően! A rendszerünkkel pontosan leképezheted a tárolási útvonalakat:
+            </p>
+            <div class="bg-light p-3 rounded mb-3 border border-light-subtle">
+                <span class="badge bg-dark">Cég / Telephely</span> ➔
+                <span class="badge bg-info text-dark">Épület</span> ➔
+                <span class="badge bg-primary">Helyiség</span> ➔
+                <span class="badge bg-success">Polc / Sor</span> ➔
+                <span class="badge bg-secondary">Tárolóeszköz</span>
             </div>
+            <p class="text-muted small">
+                Nincs szükség a legmélyebb szintig való besorolásra: ha egy eszközöd közvetlenül az udvaron vagy egy szoba sarkában áll, azt is zökkenőmentesen kezelheted!
+            </p>
         </div>
-        <div class="col-md-6 mb-3">
-            <div class="card bg-primary text-white shadow h-100 border-0 rounded-3">
-                <div class="card-body text-center p-4">
-                    <h5 class="card-title text-uppercase text-white-50 fw-bold mb-3"><i class="bi bi-boxes"></i> Összes Termék Száma</h5>
-                    <h1 class="display-5 fw-bold mb-0">@Model.TotalProducts db</h1>
-                </div>
-            </div>
+        <div class="col order-lg-1">
+            <img src="/images/warehouse_hierarchy_diagram.jpg" class="img-fluid rounded shadow-sm border border-light" alt="Raktárhierarchia ábra" loading="lazy">
         </div>
     </div>
 
-    <div class="row">
-        <!-- KATEGÓRIÁNKÉNTI BONTÁS -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="bi bi-tags"></i> Érték Kategóriánként</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        @if (Model.ValueByCategory == null || !Model.ValueByCategory.Any())
-                        {
-                            <div class="list-group-item text-center text-muted p-4">Nincs még adat.</div>
-                        }
-                        else
-                        {
-                            @foreach (var item in Model.ValueByCategory)
-                            {
-                                <!-- KATTINTHATÓ LINK: Átirányít a Products/Index-re, átadva a szűrőt -->
-                                <a href="/Products/Index?categoryName=@Uri.EscapeDataString(item.Key)" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3 text-decoration-none">
-                                    <span class="fw-bold text-dark">@item.Key</span>
-                                    <span class="badge bg-success rounded-pill fs-6">@item.Value.ToString("N0") Ft</span>
-                                </a>
-                            }
-                        }
+    <hr class="my-5" />
+
+    <!-- 2. FUNKCIÓ: CSOPORTOS ÁTMOZGATÁS -->
+    <div class="row row-cols-1 row-cols-lg-2 align-items-center g-5 py-4 my-2">
+        <div class="col">
+            <h3 class="fw-bold text-dark mb-3"><i class="bi bi-arrows-move text-success me-2"></i>Csoportos tároló-átmozgatás</h3>
+            <p class="text-secondary fs-5">
+                Mi történik, ha egy egész, áruval teli kartondobozt vagy raklapot kell áthelyezned egy másik épületbe vagy polcra?
+                <strong>Nálunk nem kell a benne lévő termékeket egyenként szerkesztened!</strong>
+            </p>
+            <p class="text-muted">
+                A beépített csoportos átmozgatási funkció segítségével elegendő magát a tárolódobozt átirányítani az új polcra.
+                A rendszerünk a háttérben automatikusan frissíti az összes benne lévő termék fizikai koordinátáját, és minden egyes darabnál önműködően rögzíti a tranzakciót.
+            </p>
+        </div>
+        <div class="col">
+            <img src="/images/container_move_illustration.jpg" class="img-fluid rounded shadow-sm border border-light" alt="Átmozgatás funkció illusztráció" loading="lazy">
+        </div>
+    </div>
+</div>
+
+<!-- LÁTVÁNYOS EXTRA FUNKCIÓK KÁRTYÁKBAN -->
+<div class="bg-dark text-white py-5 rounded shadow-sm my-5 px-4">
+    <div class="container">
+        <h3 class="fw-bold mb-4 text-center text-warning"><i class="bi bi-lightning-charge"></i> Intelligens funkciók, amiket imádni fogsz</h3>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="card h-100 bg-secondary text-white border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold"><i class="bi bi-clock-history me-2 text-warning"></i>Raktármozgási napló</h5>
+                        <p class="card-text small text-white-50">Minden készletváltozást, adatváltoztatást és áthelyezést másodpercre pontosan rögzítünk a beépített tranzakciós naplóban.</p>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- CÉGENKÉNTI BONTÁS -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="bi bi-buildings"></i> Érték Cégenként</h5>
+            <div class="col-md-4">
+                <div class="card h-100 bg-secondary text-white border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold"><i class="bi bi-camera-fill me-2 text-warning"></i>SkiaSharp képoptimalizáló</h5>
+                        <p class="card-text small text-white-50">Tölts fel fotókat az eszközeidről! A beépített motorunk automatikusan 800px-re kicsinyíti és 85%-os minőségre tömöríti a fájlokat.</p>
+                    </div>
                 </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        @if (Model.ValueByCompany == null || !Model.ValueByCompany.Any())
-                        {
-                            <div class="list-group-item text-center text-muted p-4">Nincs még adat.</div>
-                        }
-                        else
-                        {
-                            @foreach (var item in Model.ValueByCompany)
-                            {
-                                <!-- KATTINTHATÓ LINK: Közvetlenül a Cég Részletek (Details) oldalára ugrik -->
-                                <a href="/Companies/Details/@item.CompanyId" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3 text-decoration-none">
-                                    <span class="fw-bold text-dark">@item.CompanyName</span>
-                                    <span class="badge bg-success rounded-pill fs-6">@item.TotalValue.ToString("N0") Ft</span>
-                                </a>
-                            }
-                        }
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 bg-secondary text-white border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold"><i class="bi bi-cookie me-2 text-warning"></i>Állapotmegőrző űrlapok</h5>
+                        <p class="card-text small text-white-50">Az intelligens sütiknek köszönhetően a rendszer megjegyzi a legutóbb kiválasztott koordinátákat, felgyorsítva az egymás utáni rögzítést.</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="text-center mt-4">
-        <a href="/Products" class="btn btn-lg btn-outline-primary shadow-sm"><i class="bi bi-search"></i> Ugrás a teljes terméklistához</a>
-    </div>
-}
+<!-- ALSÓ CTA BANNER -->
+<div class="text-center py-5">
+    <h2 class="fw-bold mb-3">Készen állsz a rendszerezésre?</h2>
+    <p class="text-secondary mb-4 fs-5">Hozd létre saját, ingyenes fiókodat és kezdd el bevezetni a rendet a raktáradba!</p>
+    <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-warning btn-lg px-5 fw-bold shadow">
+        <i class="bi bi-rocket-takeoff-fill"></i> Regisztrálok most
+    </a>
+</div>
