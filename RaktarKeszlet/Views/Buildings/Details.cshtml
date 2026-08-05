@@ -1,85 +1,123 @@
 @model RaktarKeszlet.ViewModels.BuildingDetailsViewModel
+
 @{
     ViewData["Title"] = "Épület részletei";
 }
 
+<!-- HIERARCHIA NAVIGÁCIÓS SÁV (ÚJ) -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-light p-3 rounded shadow-sm">
+        <li class="breadcrumb-item">
+            <a asp-controller="Companies" asp-action="Details" asp-route-id="@Model.Building.CompanyId" class="text-decoration-none text-dark">
+                <i class="bi bi-briefcase-fill text-muted"></i> @(Model.Building.Company?.Name ?? "Telephely")
+            </a>
+        </li>
+        <li class="breadcrumb-item active fw-bold text-info" aria-current="page">
+            <i class="bi bi-building-fill"></i> @Model.Building.Name (Épület)
+        </li>
+    </ol>
+</nav>
+
 <!-- Címsor, Vissza gomb és Új helyiség gyorsgomb -->
 <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
-    <h2 class="fw-bold"><i class="bi bi-building me-2"></i>@Model.Building.Name adatai</h2>
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-building me-2 text-info"></i>@Model.Building.Name adatai</h2>
+        <p class="text-muted mb-0 small">Telephely / Tulajdonos: <strong><i class="bi bi-buildings text-secondary"></i> @(Model.Building.Company?.Name ?? "-")</strong></p>
+    </div>
     <div>
         <a asp-action="Index" class="btn btn-outline-secondary shadow-sm me-2">
-            <i class="bi bi-arrow-left"></i> Vissza
+            <i class="bi bi-arrow-left"></i> Vissza az épületekhez
         </a>
-        <!-- Gyorsgomb új helyiség felviteléhez ebbe az épületbe -->
-        <a asp-controller="Rooms" asp-action="Create" class="btn btn-primary shadow-sm">
+        <!-- Gyorsgomb új helyiség felviteléhez (Átadva a BuildingId az okos alapértelmezéshez!) -->
+        <a asp-controller="Rooms" asp-action="Create" asp-route-buildingId="@Model.Building.Id" class="btn btn-primary shadow-sm">
             <i class="bi bi-plus-circle me-1"></i> Új helyiség
         </a>
     </div>
 </div>
-
-<!-- Itt átírtuk a Cég szót Telephelyre a felületen -->
-<p class="text-muted">Telephely / Tulajdonos: <strong><i class="bi bi-buildings"></i> @(Model.Building.Company?.Name ?? "-")</strong></p>
 <hr />
+
+<!-- Összesített statisztikai kártyák (100%-ban MEGTARTVA) -->
 <partial name="_AggregateCards" model='new RaktarKeszlet.ViewModels.AggregateCardsViewModel {
     FirstCardTitle = "Nyilvántartott Helyiségek",
     FirstCardIcon = "bi-door-open",
     FirstCardCount = Model.TotalRoomsCount,
     TotalProductsCount = Model.TotalProductsCount,
     TotalProductsValue = Model.TotalProductsValue,
-    BuildingId = Model.Building.Id // Itt a BuildingId-t adjuk át a szûréshez!
+    BuildingId = Model.Building.Id
 }' />
 
-<h4 class="mb-3 text-secondary"><i class="bi bi-diagram-3"></i> Az épületben található helyiségek</h4>
+<h4 class="mb-4 mt-5 text-secondary fw-bold"><i class="bi bi-diagram-3"></i> Az épületben található helyiségek</h4>
 
-<!-- ÚJ RÉSZ: Helyiségek kártyás megjelenítése (A táblázat helyett) -->
-<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-4">
-
-    @if (Model.PagedRooms != null && Model.PagedRooms.Any())
-    {
+<!-- INTEGRÁLT KÁRTYÁS ELRENDEZÉS (Javítva: Funkcióvesztés és HTML link-ütközés nélkül!) -->
+@if (Model.PagedRooms != null && Model.PagedRooms.Any())
+{
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-4">
         @foreach (var item in Model.PagedRooms)
         {
             <div class="col">
-                <!-- A kártya a Helyiség Részletek (Details) oldalára visz! -->
-                <a asp-controller="Rooms" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark">
-
-                    <div class="card h-100 shadow-sm border border-light-subtle product-card bg-white text-center">
-
-                        <!-- Ikonos fejléc a helyiséghez (A zöld/success szín jól elkülöníti az épületektõl) -->
-                        <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
-                            <i class="bi bi-door-open text-success" style="font-size: 3.5rem;"></i>
-                        </div>
-
-                        <div class="card-body d-flex flex-column pb-4">
-                            <h5 class="card-title fw-bold mb-3">@item.Name</h5>
-
-                            <div class="mt-auto">
-                                <span class="badge bg-success text-white px-3 py-2 rounded-pill">Helyiség</span>
-                            </div>
-                        </div>
+                <div class="card h-100 shadow-sm border-0 transition-hover bg-white text-center">
+                    <!-- KÁRTYA FEJLÉC (Zöld / Success téma a helyiségeknek) -->
+                    <div class="card-header bg-success text-white py-3">
+                        <h6 class="card-title mb-0 fw-bold text-truncate" title="@item.Name">
+                            <i class="bi bi-door-open me-2"></i>@item.Name
+                        </h6>
                     </div>
-                </a>
-            </div>
-        }
-    }
-    else
-    {
-        <div class="col-12">
-            <div class="alert alert-warning shadow-sm d-flex align-items-center">
-                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-                <div>
-                    <strong>Nincsenek helyiségek!</strong><br />
-                    Ebben az épületben jelenleg még nincs egyetlen helyiség sem rögzítve.
+
+                    <!-- KÁRTYA TEST -->
+                    <div class="card-body py-4">
+                        <i class="bi bi-door-closed-fill text-success opacity-75" style="font-size: 3rem;"></i>
+                        <p class="card-text text-secondary small mt-3 mb-0">
+                            Lépj be a helyiségbe a polcok és dobozok eléréséhez.
+                        </p>
+                    </div>
+
+                    <!-- MÛVELETI GOMBOK (Lefúrás + Biztonságos Gyors Termékfelvitel) -->
+                    <div class="card-footer bg-light border-top-0 d-flex justify-content-between align-items-center py-3">
+                        <!-- BELÉPÉS GOMB (Lefúrás a Helyiség részleteire) -->
+                        <a asp-controller="Rooms" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-success fw-bold" title="Belépés a helyiségbe">
+                            <i class="bi bi-arrow-right-circle"></i> Belépés
+                        </a>
+
+                        <!-- JAVÍTVA ÉS INTEGRÁLVA: Gyors termék hozzáadása a teljes szülõi hierarchia ID átadásával! -->
+                        <a asp-controller="Products" 
+                           asp-action="Create" 
+                           asp-route-companyId="@Model.Building.CompanyId"
+                           asp-route-buildingId="@Model.Building.Id"
+                           asp-route-roomId="@item.Id"
+                           class="btn btn-sm btn-success fw-bold"
+                           title="Termék hozzáadása ebbe a helyiségbe">
+                            <i class="bi bi-plus-circle"></i> + Termék
+                        </a>
+                    </div>
                 </div>
             </div>
+        }
+    </div>
+}
+else
+{
+    <div class="col-12">
+        <div class="alert alert-warning shadow-sm d-flex align-items-center py-4">
+            <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-warning"></i>
+            <div>
+                <strong class="fs-5">Nincsenek helyiségek!</strong><br />
+                Ebben az épületben jelenleg még nincs egyetlen helyiség sem rögzítve.
+            </div>
         </div>
-    }
+    </div>
+}
+
+<!-- LAPOZÓ VEZÉRLÕ (100%-ban MEGTARTVA) -->
+<div class="mt-4">
+    <partial name="_Pagination" model="(Model.CurrentPage, Model.TotalPages)" />
 </div>
 
-<!-- A TE EREDETI LAPOZÓD (Megtartva!) -->
-<partial name="_Pagination" model="(Model.CurrentPage, Model.TotalPages)" />
-
+<!-- ALSÓ NAVIGÁCIÓS SÁV (100%-ban MEGTARTVA) -->
 <div class="mt-4 border-top pt-4">
-    <a asp-action="Index" class="btn btn-outline-secondary">Vissza az épületekhez</a>
-    <!-- UI címke itt is módosítva 'telephelyhez'-re -->
-    <a asp-controller="Companies" asp-action="Details" asp-route-id="@Model.Building.CompanyId" class="btn btn-outline-primary ms-2">Vissza a telephelyhez</a>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Vissza az épületekhez
+    </a>
+    <a asp-controller="Companies" asp-action="Details" asp-route-id="@Model.Building.CompanyId" class="btn btn-outline-primary ms-2">
+        <i class="bi bi-buildings"></i> Vissza a telephelyhez
+    </a>
 </div>

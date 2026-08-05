@@ -25,6 +25,13 @@ namespace RaktarKeszlet.Controllers
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+            // Ha a felhasználó már be van jelentkezve, automatikusan a Dashboardra küldjük
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Dashboard");
+            }
+
+
             // Ha nincs bejelentkezve a felhasználó, egy üres Dashboardot mutatunk (vagy átirányíthatjuk a Loginra)
             if (currentUserId == null)
             {

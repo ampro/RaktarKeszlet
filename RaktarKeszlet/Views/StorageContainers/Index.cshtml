@@ -4,6 +4,170 @@
     ViewData["Title"] = "Tárolóeszközök";
 }
 
+<div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div>
+        <h1 class="h3 mb-1"><i class="bi bi-box-seam text-secondary"></i> Tárolóeszközök</h1>
+        <p class="text-muted mb-0 small">Itt kezelheted a polcokon vagy szabadon lévõ dobozokat, raklapokat és egyéb tárolókat.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-secondary shadow-sm">
+        <i class="bi bi-plus-circle"></i> Új tárolóeszköz felvitele
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info shadow-sm rounded text-center py-4">
+        <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
+        Még nem rögzítettél egyetlen tárolóeszközt sem.
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+        @foreach (var item in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0 transition-hover bg-white">
+
+                    <!-- KÁRTYA FEJLÉC -->
+                    <div class="card-header bg-secondary text-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold text-truncate" title="@item.Name">
+                            <i class="bi bi-box-seam me-2"></i>@item.Name
+                        </h5>
+                        <span class="badge bg-light text-dark fw-bold">@item.Type</span>
+                    </div>
+
+                    <!-- KÁRTYA TEST (A TELJES KATTINTHATÓ HIERARCHIÁVAL) -->
+                    <div class="card-body">
+                        <h6 class="text-muted small text-uppercase fw-bold mb-3">
+                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>Tárolási hierarchia
+                        </h6>
+
+                        <ul class="list-group list-group-flush mb-0 small">
+                            <!-- CÉG SZINT -->
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 bg-transparent border-light-subtle">
+                                <span class="text-muted"><i class="bi bi-briefcase me-1"></i> Cég / Telephely:</span>
+                                @if (item.Company != null)
+                                {
+                                    <a asp-controller="Companies" asp-action="Details" asp-route-id="@item.CompanyId" class="fw-bold text-decoration-none text-dark hover-link" title="Ugrás a cég adatlapjára">
+                                        @item.Company.Name <i class="bi bi-box-arrow-in-right text-muted ms-1"></i>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-danger fw-bold">Nincs megadva</span>
+                                }
+                            </li>
+
+                            <!-- POLCHOZ KÖTÖTT SZINTEK ELLENÕRZÉSE -->
+                            @if (item.Shelf != null)
+                            {
+                                <!-- ÉPÜLET SZINT -->
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 bg-transparent border-light-subtle">
+                                    <span class="text-muted"><i class="bi bi-building me-1"></i> Épület:</span>
+                                    @if (item.Shelf.Room?.Building != null)
+                                    {
+                                        <a asp-controller="Buildings" asp-action="Details" asp-route-id="@item.Shelf.Room.BuildingId" class="fw-bold text-decoration-none text-dark hover-link" title="Ugrás az épület adatlapjára">
+                                            @item.Shelf.Room.Building.Name <i class="bi bi-box-arrow-in-right text-muted ms-1"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Nincs megadva</span>
+                                    }
+                                </li>
+
+                                <!-- HELYISÉG SZINT -->
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 bg-transparent border-light-subtle">
+                                    <span class="text-muted"><i class="bi bi-door-open me-1"></i> Helyiség:</span>
+                                    @if (item.Shelf.Room != null)
+                                    {
+                                        <a asp-controller="Rooms" asp-action="Details" asp-route-id="@item.Shelf.RoomId" class="fw-bold text-decoration-none text-dark hover-link" title="Ugrás a helyiség adatlapjára">
+                                            @item.Shelf.Room.Name <i class="bi bi-box-arrow-in-right text-muted ms-1"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Nincs megadva</span>
+                                    }
+                                </li>
+
+                                <!-- POLC SZINT -->
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 bg-transparent border-0">
+                                    <span class="text-muted"><i class="bi bi-layers me-1"></i> Polc / Sor:</span>
+                                    <a asp-controller="Shelves" asp-action="Details" asp-route-id="@item.ShelfId" class="fw-bold text-decoration-none text-dark hover-link" title="Ugrás a polc adatlapjára">
+                                        @item.Shelf.Identifier <i class="bi bi-box-arrow-in-right text-muted ms-1"></i>
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <!-- SZABADON ÁLLÓ TÁROLÓ FIGYELMEZTETÉS -->
+                                <li class="list-group-item px-0 py-3 bg-transparent border-0 text-center">
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2 rounded-pill fw-bold">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Szabadon álló (Nincs polchoz rendelve)
+                                    </span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+
+                    <!-- MÛVELETI GOMBOK (Footer) -->
+                    <div class="card-footer bg-light border-top-0 d-flex justify-content-between align-items-center py-3">
+                        <!-- TÁROLÓ MEGNYITÁSA / DETAILS -->
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary fw-bold" title="Tárolóban lévõ termékek megtekintése">
+                            <i class="bi bi-arrow-right-circle"></i> Megnyitás
+                        </a>
+
+                        <div class="btn-group">
+                            <!-- MEGTARTVA: Új termék gyors hozzáadása a teljes szülõi hierarchia ID-jával! -->
+                            <a asp-controller="Products"
+                               asp-action="Create"
+                               asp-route-companyId="@item.CompanyId"
+                               asp-route-buildingId="@item.Shelf?.Room?.BuildingId"
+                               asp-route-roomId="@item.Shelf?.RoomId"
+                               asp-route-shelfId="@item.ShelfId"
+                               asp-route-storageContainerId="@item.Id"
+                               class="btn btn-sm btn-success fw-bold"
+                               title="Termék hozzáadása ebbe a tárolóba">
+                                <i class="bi bi-plus-circle"></i> + Termék
+                            </a>
+
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Szerkesztés">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Törlés">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .hover-link:hover {
+        text-decoration: underline !important;
+        color: #198754 !important; /* Szép zöld színû kiemelés hoverkor */
+    }
+</style>
+
+
+
+
+
+
+
+
+
+@* @model IEnumerable<RaktarKeszlet.Models.StorageContainer>
+
+@{
+    ViewData["Title"] = "Tárolóeszközök";
+}
+
 <h1>Tárolóeszközök</h1>
 <p class="text-muted">Itt kezelheted a polcokon lévõ dobozokat, raklapokat és rekeszeket.</p>
 
@@ -74,4 +238,5 @@
             }
         </tbody>
     </table>
-</div>
+</div> *@
+

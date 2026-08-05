@@ -1,0 +1,207 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model RaktarKeszlet.ViewModels.DashboardViewModell
+
+@{
+    ViewData["Title"] = "Vezérlőpult";
+}
+
+<!-- ÜDVÖZLÉS ÉS IDŐBÉLYEG -->
+<div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div>
+        <h1 class="h2 fw-bold mb-1"><i class="bi bi-speedometer2 text-dark"></i> Vezérlőpult</h1>
+        <p class="text-muted mb-0">Üdvözlünk! Itt láthatod a raktárhálózatod valós idejű, összesített adatait.</p>
+    </div>
+    <span class="badge bg-light text-dark border p-2 shadow-sm"><i class="bi bi-clock me-1"></i> Utolsó frissítés: @DateTime.Now.ToString("HH:mm")</span>
+</div>
+
+<!-- 1. KIEMELT KÉSZLET KPI KÁRTYÁK -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card-body py-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-white-50 text-uppercase mb-1 fw-bold">Készlet összértéke</h6>
+                    <h1 class="display-6 fw-bold mb-0">@Model.TotalInventoryValue.ToString("N0") Ft</h1>
+                </div>
+                <i class="bi bi-cash-coin opacity-50" style="font-size: 3.5rem;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm bg-primary text-white">
+            <div class="card-body py-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-white-50 text-uppercase mb-1 fw-bold">Regisztrált termékek</h6>
+                    <h1 class="display-6 fw-bold mb-0">@Model.TotalProducts db</h1>
+                </div>
+                <i class="bi bi-box-seam opacity-50" style="font-size: 3.5rem;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 col-lg-4">
+        <div class="card border-0 shadow-sm bg-dark text-white">
+            <div class="card-body py-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-white-50 text-uppercase mb-1 fw-bold">Saját telephelyek</h6>
+                    <h1 class="display-6 fw-bold mb-0">@Model.TotalCompanies db</h1>
+                </div>
+                <i class="bi bi-buildings opacity-50" style="font-size: 3.5rem;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. HIERARCHIA STATISZTIKÁK -->
+<div class="row g-4 mb-4">
+    <div class="col-6 col-lg-3">
+        <a asp-controller="Buildings" asp-action="Index" class="text-decoration-none text-dark">
+            <div class="card h-100 border-0 shadow-sm text-center py-3 transition-hover bg-white">
+                <i class="bi bi-building text-info" style="font-size: 2rem;"></i>
+                <h5 class="fw-bold mt-2 mb-0">@Model.TotalBuildings</h5>
+                <span class="text-muted small">Raktárépület</span>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a asp-controller="Rooms" asp-action="Index" class="text-decoration-none text-dark">
+            <div class="card h-100 border-0 shadow-sm text-center py-3 transition-hover bg-white">
+                <i class="bi bi-door-open text-primary" style="font-size: 2rem;"></i>
+                <h5 class="fw-bold mt-2 mb-0">@Model.TotalRooms</h5>
+                <span class="text-muted small">Helyiség</span>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a asp-controller="Shelves" asp-action="Index" class="text-decoration-none text-dark">
+            <div class="card h-100 border-0 shadow-sm text-center py-3 transition-hover bg-white">
+                <i class="bi bi-layers text-success" style="font-size: 2rem;"></i>
+                <h5 class="fw-bold mt-2 mb-0">@Model.TotalShelves</h5>
+                <span class="text-muted small">Polc / Sor</span>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a asp-controller="StorageContainers" asp-action="Index" class="text-decoration-none text-dark">
+            <div class="card h-100 border-0 shadow-sm text-center py-3 transition-hover bg-white">
+                <i class="bi bi-box text-secondary" style="font-size: 2rem;"></i>
+                <h5 class="fw-bold mt-2 mb-0">@Model.TotalContainers</h5>
+                <span class="text-muted small">Tárolóeszköz</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- 3. BAL OLDAL: KATEGÓRIÁK MEGOSZLÁSA -->
+    <div class="col-lg-6">
+        <div class="card h-100 border-0 shadow-sm bg-white">
+            <div class="card-header bg-transparent border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-pie-chart text-secondary me-2"></i>Kategóriák megoszlása</h5>
+                <span class="badge bg-light text-secondary border">Összesen @Model.ProductsByCategory.Count kategória</span>
+            </div>
+            <div class="card-body px-4 pb-4">
+                @if (!Model.ProductsByCategory.Any())
+                {
+                    <p class="text-muted text-center py-5">Nincs elérhető termékadat a kategória statisztikákhoz.</p>
+                }
+                else
+                {
+                    <div class="mt-3">
+                        @foreach (var cat in Model.ProductsByCategory)
+                        {
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div>
+                                        <!-- Kattintható kategória név, ami a szűrt terméklistára visz [12] -->
+                                        <a asp-controller="Products" asp-action="Index" asp-route-categoryName="@cat.CategoryName" class="fw-bold text-dark text-decoration-none hover-link">
+                                            @cat.CategoryName
+                                        </a>
+                                        <span class="text-muted small ms-2">(@cat.ProductCount db)</span>
+                                    </div>
+                                    <span class="fw-bold text-secondary small">@cat.Percentage%</span>
+                                </div>
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: @cat.Percentage%" aria-valuenow="@cat.Percentage" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <span class="text-muted small">Érték: @cat.TotalValue.ToString("N0") Ft</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. JOBB OLDAL: LEGUTÓBBI RAKTARMOZGÁSOK (TRANZAKCIÓK) -->
+    <div class="col-lg-6">
+        <div class="card h-100 border-0 shadow-sm bg-white">
+            <div class="card-header bg-transparent border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-activity text-secondary me-2"></i>Legutóbbi raktármozgások</h5>
+                <span class="badge bg-light text-secondary border">Utolsó 5 bejegyzés</span>
+            </div>
+            <div class="card-body px-4 pb-4">
+                @if (!Model.RecentLogs.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-info-circle fs-2 d-block mb-2 text-secondary"></i>
+                        Még nem történt készletváltozás vagy áthelyezés a rendszerben.
+                    </div>
+                }
+                else
+                {
+                    <div class="timeline mt-3">
+                        @foreach (var log in Model.RecentLogs)
+                        {
+                            <div class="border-left-indicator mb-3 p-3 bg-light rounded border shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="text-dark">@log.ProductName</strong>
+                                    <span class="text-muted small"><i class="bi bi-calendar3"></i> @log.TransactionDate.ToString("yyyy.MM.dd. HH:mm")</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge @(log.ActionType.Contains("áthelyezése") ? "bg-primary" : "bg-warning text-dark")">
+                                        @log.ActionType
+                                    </span>
+                                    <span class="text-secondary small">
+                                        @log.FromContainerName <i class="bi bi-arrow-right mx-1"></i> @log.ToContainerName
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 5. GYORS INDÍTÓ / HOZZÁADÓ SÁV -->
+<div class="card border-0 shadow-sm bg-dark text-white mt-4 mb-5">
+    <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Gyors rögzítések</h5>
+            <p class="mb-0 small text-white-50">Kattints egy gombra egy új hierarchia-elem vagy termék azonnali felviteléhez!</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-controller="Products" asp-action="Create" class="btn btn-success"><i class="bi bi-box-seam"></i> + Termék</a>
+            <a asp-controller="Companies" asp-action="Create" class="btn btn-outline-light"><i class="bi bi-briefcase"></i> + Cég</a>
+            <a asp-controller="Buildings" asp-action="Create" class="btn btn-outline-light"><i class="bi bi-building"></i> + Épület</a>
+            <a asp-controller="StorageContainers" asp-action="Create" class="btn btn-outline-light"><i class="bi bi-box"></i> + Tároló</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-left-indicator {
+        border-left: 4px solid #198754 !important; /* Szép zöld csík a logok mellett */
+    }
+
+    .hover-link:hover {
+        text-decoration: underline !important;
+        color: #198754 !important;
+    }
+</style>
